@@ -1,0 +1,420 @@
+import React, { useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import {
+  Search,
+  MapPin,
+  Banknote,
+  X,
+  GraduationCap,
+  Building2,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  ArrowRight,
+  Star,
+  BadgeCheck,
+  Calendar,
+  Briefcase
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+export default function Internships() {
+  // State management
+  const [internships, setInternships] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedInternship, setSelectedInternship] = useState(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
+
+  // Filter states
+  const [officeType, setOfficeType] = useState('all');
+  const [duration, setDuration] = useState('all');
+
+  // Fetch Internships from Firestore
+  useEffect(() => {
+    setLoading(true);
+    const q = query(collection(db, 'internships'), orderBy('createdAt', 'desc'));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setInternships(data);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching internships:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Filter Logic
+  const filteredInternships = internships.filter(item => {
+    const matchesOfficeType = officeType === 'all' || item.officeType === officeType;
+    const matchesDuration = duration === 'all' || (item.duration && item.duration.toLowerCase().includes(duration));
+    const matchesSearch = searchTerm === '' ||
+      item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.skills?.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      item.location?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return matchesOfficeType && matchesDuration && matchesSearch;
+  });
+
+  // Pagination Logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentInternships = filteredInternships.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredInternships.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const handleApply = (item) => {
+    if (item.companyUrl) window.open(item.companyUrl, '_blank');
+    else alert('Application link not available.');
+  };
+
+  const clearFilters = () => {
+    setOfficeType('all');
+    setDuration('all');
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#020617] text-white pt-32 pb-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-purple-500/30 overflow-x-hidden">
+
+      <div className="max-w-7xl mx-auto">
+
+        {/* 1. HERO SECTION (Header) */}
+        <div className="relative mb-16 text-center">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-purple-500/20 blur-[100px] rounded-full pointer-events-none -z-10"></div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold uppercase tracking-widest mb-6 backdrop-blur-md shadow-[0_0_20px_rgba(168,85,247,0.1)]">
+              <GraduationCap className="w-4 h-4" /> Verified Internships
+            </div>
+          </motion.div>
+          <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">
+            <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Launch Your </span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400">Career Journey</span>
+          </h1>
+          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-light">
+            Gain real-world experience with internships at top companies.
+          </p>
+        </div>
+
+        {/* 2. FILTER BAR */}
+        <div className="sticky top-24 z-40 mb-12">
+          <div className="bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 shadow-2xl shadow-black/50 flex flex-col md:flex-row gap-2 max-w-5xl mx-auto">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 group-focus-within:text-purple-400 transition-colors" />
+              <input
+                type="text"
+                placeholder="Search by Role, Company..."
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                className="w-full bg-transparent border-none text-white placeholder-slate-500 focus:ring-0 py-3 pl-12 pr-4 text-base font-medium"
+              />
+            </div>
+
+            <div className="hidden md:flex items-center gap-2 border-l border-white/10 pl-2">
+              <select
+                value={officeType}
+                onChange={(e) => { setOfficeType(e.target.value); setCurrentPage(1); }}
+                className="bg-transparent text-slate-300 text-sm font-medium focus:outline-none cursor-pointer hover:text-white transition-colors py-2 px-2"
+              >
+                <option value="all" className="bg-[#0f172a]">Workplace</option>
+                <option value="in-office" className="bg-[#0f172a]">In-Office</option>
+                <option value="remote" className="bg-[#0f172a]">Remote</option>
+                <option value="hybrid" className="bg-[#0f172a]">Hybrid</option>
+              </select>
+              <select
+                value={duration}
+                onChange={(e) => { setDuration(e.target.value); setCurrentPage(1); }}
+                className="bg-transparent text-slate-300 text-sm font-medium focus:outline-none cursor-pointer hover:text-white transition-colors py-2 px-2"
+              >
+                <option value="all" className="bg-[#0f172a]">Duration</option>
+                <option value="1 month" className="bg-[#0f172a]">1 Month</option>
+                <option value="2 months" className="bg-[#0f172a]">2 Months</option>
+                <option value="3 months" className="bg-[#0f172a]">3 Months</option>
+                <option value="6 months" className="bg-[#0f172a]">6 Months</option>
+              </select>
+            </div>
+
+            <button
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="md:hidden p-3 bg-white/5 rounded-xl text-white"
+            >
+              <Filter className="w-5 h-5" />
+            </button>
+          </div>
+          {/* Mobile Filters */}
+          <AnimatePresence>
+            {showMobileFilters && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="md:hidden bg-[#0f172a] border border-white/10 rounded-xl p-4 mt-2 shadow-xl mx-4"
+              >
+                <select
+                  value={officeType}
+                  onChange={(e) => setOfficeType(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 mb-2 text-white"
+                >
+                  <option value="all">Any Workplace</option>
+                  <option value="in-office">In-Office</option>
+                  <option value="remote">Remote</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+                <button onClick={clearFilters} className="w-full p-3 bg-rose-500/10 text-rose-400 rounded-lg font-bold">Clear Filters</button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+
+        {/* 3. UNIQUE CARD GRID */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-72 bg-slate-900/50 rounded-3xl animate-pulse border border-white/5"></div>
+            ))}
+          </div>
+        ) : filteredInternships.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="inline-block p-6 rounded-full bg-slate-900/50 mb-4 border border-white/5">
+              <GraduationCap className="text-4xl text-slate-600 w-12 h-12" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">No Internships Found</h3>
+            <p className="text-slate-500 mt-2">Try adjusting your filters</p>
+            <button onClick={clearFilters} className="mt-6 text-purple-400 font-bold hover:underline">Reset All</button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {currentInternships.map((item) => (
+              <motion.div
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ y: -8, scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                key={item.id}
+                className="group relative bg-[#0B1120] border border-white/5 rounded-[2rem] overflow-hidden hover:border-purple-500/30 transition-colors duration-500"
+              >
+                {/* Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+
+                {/* Top Section */}
+                <div className="p-6 relative z-10">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="w-14 h-14 rounded-2xl bg-[#1e293b] flex items-center justify-center text-3xl shadow-inner border border-white/10 group-hover:shadow-purple-500/20 transition-all">
+                      {item.companyLogo || <Building2 className="text-slate-400 group-hover:text-purple-400 transition-colors w-7 h-7" />}
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${item.officeType === 'remote' ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-400' :
+                        'bg-slate-800 border-slate-700 text-slate-400'
+                        }`}>
+                        {item.officeType || 'Hybrid'}
+                      </span>
+                      {/* Date Removed per user request */}
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white mb-1 line-clamp-1 group-hover:text-purple-400 transition-colors">{item.title}</h3>
+                  <div className="flex items-center gap-2 mb-5">
+                    <p className="text-slate-400 font-medium text-sm">{item.company}</p>
+                    {item.isVerified && (
+                      <span className="flex items-center gap-1 bg-purple-500/20 text-purple-400 border border-purple-500/30 px-1.5 py-0.5 rounded text-[10px] font-bold">
+                        Verified <BadgeCheck className="w-3 h-3" />
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 mb-5">
+                    <div className="bg-white/5 rounded-lg p-2 border border-white/5">
+                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1"><Banknote className="w-3 h-3" /> Stipend</p>
+                      <p className="text-xs text-emerald-400 font-medium truncate">{item.salary || 'Unpaid'}</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-2 border border-white/5">
+                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1"><Calendar className="w-3 h-3" /> Duration</p>
+                      <p className="text-xs text-white font-medium truncate">{item.duration || 'Flexible'}</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-2 border border-white/5">
+                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1"><Clock className="w-3 h-3" /> Deadline</p>
+                      <p className="text-xs text-rose-400 font-medium truncate">{item.deadline || 'ASAP'}</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-2 border border-white/5">
+                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1"><Briefcase className="w-3 h-3" /> Openings</p>
+                      <p className="text-xs text-white font-medium truncate">{item.openings || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  {/* Skills Section */}
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {item.skills?.slice(0, 3).map((skill, i) => (
+                      <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5 font-medium">
+                        {skill}
+                      </span>
+                    ))}
+                    {item.skills?.length > 3 && (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-500 border border-white/5 font-medium">
+                        +{item.skills.length - 3} More
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Bottom Action Bar */}
+                <div className="bg-[#0f172a] border-t border-white/5 p-3 flex gap-2 relative z-10">
+                  <button
+                    onClick={() => { setSelectedInternship(item); setShowDetailsModal(true); }}
+                    className="flex-1 py-2.5 rounded-lg text-xs font-bold text-slate-300 hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
+                  >
+                    Details
+                  </button>
+                  <button
+                    onClick={() => handleApply(item)}
+                    className="flex-[2] py-2.5 bg-white text-black rounded-lg text-xs font-bold hover:bg-purple-400 transition-colors flex items-center justify-center gap-2 group/btn"
+                  >
+                    Apply Now <ArrowRight className="w-4 h-4 -rotate-45 group-hover/btn:rotate-0 transition-transform" />
+                  </button>
+                </div>
+
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-16 pb-8 gap-3">
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="w-12 h-12 rounded-full hidden md:flex items-center justify-center bg-[#0f172a] border border-white/10 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:border-purple-500 transition-all"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => paginate(i + 1)}
+                className={`w-12 h-12 rounded-full font-bold transition-all border ${currentPage === i + 1
+                  ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-500/25 scale-110'
+                  : 'bg-[#0f172a] border-white/10 text-slate-400 hover:border-white/30 hover:text-white'
+                  }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="w-12 h-12 rounded-full hidden md:flex items-center justify-center bg-[#0f172a] border border-white/10 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:border-purple-500 transition-all"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Details Modal */}
+      <AnimatePresence>
+        {showDetailsModal && selectedInternship && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            onClick={() => setShowDetailsModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 50 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 50 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#0B1120] border border-white/10 rounded-[2rem] w-full max-w-3xl max-h-[85vh] overflow-y-auto shadow-2xl relative"
+            >
+              <div className="absolute top-4 right-4 z-10">
+                <button onClick={() => setShowDetailsModal(false)} className="w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-rose-500 transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-8 md:p-10">
+                <div className="flex flex-col md:flex-row gap-6 mb-8">
+                  <div className="w-24 h-24 rounded-2xl bg-[#1e293b] flex items-center justify-center text-4xl border border-white/10">
+                    {selectedInternship.companyLogo || <Building2 className="text-purple-500 w-10 h-10" />}
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-black text-white mb-2">{selectedInternship.title}</h2>
+                    <p className="text-xl text-slate-400 font-medium">{selectedInternship.company}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <p className="text-xs text-slate-500 font-bold uppercase mb-1 flex items-center gap-1"><Banknote className="w-3 h-3" /> Stipend</p>
+                    <p className="text-emerald-400 font-bold">{selectedInternship.salary || 'Unpaid'}</p>
+                  </div>
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <p className="text-xs text-slate-500 font-bold uppercase mb-1 flex items-center gap-1"><Calendar className="w-3 h-3" /> Duration</p>
+                    <p className="text-white font-bold">{selectedInternship.duration}</p>
+                  </div>
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <p className="text-xs text-slate-500 font-bold uppercase mb-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> Location</p>
+                    <p className="text-white font-bold truncate">{selectedInternship.location}</p>
+                  </div>
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <p className="text-xs text-slate-500 font-bold uppercase mb-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Deadline</p>
+                    <p className="text-rose-400 font-bold">{selectedInternship.deadline || 'N/A'}</p>
+                  </div>
+                </div>
+
+                <h3 className="text-xl font-bold text-white mb-4">About the Role</h3>
+                <div className="prose prose-invert max-w-none mb-8 text-slate-300">
+                  <p className="whitespace-pre-wrap leading-relaxed">{selectedInternship.description}</p>
+                </div>
+
+                {selectedInternship.skills && (
+                  <div className="mb-8">
+                    <h3 className="text-xl font-bold text-white mb-4">Skills</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedInternship.skills.map((s, i) => (
+                        <span key={i} className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 font-medium">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => handleApply(selectedInternship)}
+                  className="w-full py-4 bg-white text-black font-black text-lg rounded-2xl hover:bg-purple-400 hover:scale-[1.01] transition-all shadow-xl shadow-white/5"
+                >
+                  Apply for this Position
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+    </div>
+  );
+}
