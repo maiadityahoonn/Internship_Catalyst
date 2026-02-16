@@ -1,6 +1,9 @@
-export default function MainLayout({ children, noContainer = false }) {
+import SEO from '../components/SEO';
+
+export default function MainLayout({ children, noContainer = false, seo = {} }) {
   return (
     <div className="min-h-screen bg-[#050B14] text-white relative overflow-hidden">
+      <SEO {...seo} />
 
       {/* Glow background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#0ea5e933,transparent_60%)]"></div>
