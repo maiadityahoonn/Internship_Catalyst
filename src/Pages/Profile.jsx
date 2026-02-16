@@ -136,17 +136,13 @@ export default function Profile() {
         if (activeTab === 'ai_suite') {
             return {
                 title: "No Tools Yet",
-                desc: "You haven't purchased any AI tools yet. Visit the AI Hub to get started.",
-                btn: "Explore AI Hub",
-                link: "/ai-hub"
+                desc: "You haven't purchased any AI tools yet. Visit the AI Hub to get started."
             };
         }
         if (activeTab === 'ai_history') {
             return {
                 title: "No Purchase History",
-                desc: "You haven't made any purchases yet.",
-                btn: "Get Access",
-                link: "/ai-hub"
+                desc: "You haven't made any purchases yet."
             };
         }
         switch (activeTab) {
@@ -203,12 +199,14 @@ export default function Profile() {
                 <p className="text-slate-500 text-xs font-medium uppercase tracking-widest max-w-[300px] mx-auto leading-relaxed">
                     {desc}
                 </p>
-                <button
-                    onClick={() => navigate(link)}
-                    className="mt-8 px-8 py-3 bg-white text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-sky-400 transition-all shadow-xl shadow-sky-500/10"
-                >
-                    {btn}
-                </button>
+                {btn && link && (
+                    <button
+                        onClick={() => navigate(link)}
+                        className="mt-8 px-8 py-3 bg-white text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-sky-400 transition-all shadow-xl shadow-sky-500/10"
+                    >
+                        {btn}
+                    </button>
+                )}
             </motion.div>
         );
     };
