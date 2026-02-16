@@ -10,6 +10,9 @@ import Courses from "./Pages/Courses.jsx";
 import Auth from "./Pages/Auth.jsx";
 import "./index.css";
 
+import About from "./about/About.jsx";
+import Resources from "./Pages/Resources.jsx";
+
 import Profile from "./Pages/Profile";
 import ATSScoreChecker from "./Pages/ATSScoreChecker";
 import SkillGapAnalyzer from "./Pages/SkillGapAnalyzer";
@@ -47,6 +50,8 @@ function App() {
         <Routes>
           <Route index element={<Home defaultConfig={defaultConfig} />} />
           <Route path="/ai" element={<AIPage />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/about" element={<About />} />
           <Route path="/ai-resume-templates" element={<ProtectedRoute><AIResumeTemplates /></ProtectedRoute>} />
           <Route path="/ats-score-checker" element={<ProtectedRoute><ATSScoreChecker /></ProtectedRoute>} />
           <Route path="/skill-gap-analyzer" element={<ProtectedRoute><SkillGapAnalyzer /></ProtectedRoute>} />

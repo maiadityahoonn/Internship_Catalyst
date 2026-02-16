@@ -18,46 +18,122 @@ import {
   FaAmazon,
   FaMicrosoft,
   FaFacebook,
+  FaVideo,
+  FaBullhorn,
 } from 'react-icons/fa';
 import { SiFlipkart, SiInfosys } from 'react-icons/si';
 
 //  INTERACTIVE PARTICLE SPHERE
 function ParticlePoints() {
-  const ref = useRef();
+  const sphereRef = useRef();
+  const textRef = useRef();
   const [hovered, setHovered] = useState(false);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
 
-  const positions = useMemo(() => {
-    const count = 3200;
-    const arr = new Float32Array(count * 3);
+  const TOTAL = 3200;
+  const TEXT_COUNT = 1600;
+  const RADIUS = 4.5;
 
-    for (let i = 0; i < count; i++) {
-      const r = 4.5;
+  // ================= SPHERE =================
+  const spherePositions = useMemo(() => {
+    const arr = new Float32Array(TOTAL * 3);
+
+    for (let i = 0; i < TOTAL; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
 
-      arr[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      arr[i * 3 + 2] = r * Math.cos(phi);
+      arr[i * 3] = RADIUS * Math.sin(phi) * Math.cos(theta);
+      arr[i * 3 + 1] = RADIUS * Math.sin(phi) * Math.sin(theta);
+      arr[i * 3 + 2] = RADIUS * Math.cos(phi);
     }
+
     return arr;
   }, []);
 
-  useFrame(() => {
-    if (!ref.current) return;
+  // ================= TEXT TARGET =================
+  const textTargets = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 500;
+    canvas.height = 300;
+    const ctx = canvas.getContext("2d");
 
-    // Base slow rotation
-    ref.current.rotation.y += 0.001;
-    ref.current.rotation.x += 0.0005;
+    ctx.clearRect(0, 0, 500, 300);
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
 
-    // Hover effect: rotate faster and tilt based on mouse
-    if (hovered) {
-      ref.current.rotation.y += 0.01 + mouse.x * 0.01;
-      ref.current.rotation.x += 0.005 + mouse.y * 0.01;
-      ref.current.scale.set(1.05, 1.05, 1.05); // slightly bigger
-    } else {
-      ref.current.scale.set(1, 1, 1);
+    // Balanced 2-line layout
+    ctx.font = "bold 38px Arial";
+    ctx.fillText("Welcome to", 250, 120);
+
+    ctx.font = "bold 48px Arial";
+    ctx.fillText("Internship Catalyst", 250, 175);
+
+    const data = ctx.getImageData(0, 0, 500, 300).data;
+    const pts = [];
+
+    for (let y = 0; y < 300; y += 3) {
+      for (let x = 0; x < 500; x += 3) {
+        const index = (y * 500 + x) * 4;
+        if (data[index + 3] > 128) {
+          const px = (x - 250) / 85;
+          const py = (150 - y) / 85;
+          const pz = 3.3; // slightly inside sphere surface
+
+          pts.push(px, py, pz);
+        }
+      }
     }
+
+    const final = new Float32Array(TEXT_COUNT * 3);
+    for (let i = 0; i < TEXT_COUNT; i++) {
+      const j = (i % (pts.length / 3)) * 3;
+      final[i * 3] = pts[j];
+      final[i * 3 + 1] = pts[j + 1];
+      final[i * 3 + 2] = pts[j + 2];
+    }
+
+    return final;
+  }, []);
+
+  // Initial text positions start from sphere
+  const textPositions = useMemo(() => {
+    const arr = new Float32Array(TEXT_COUNT * 3);
+
+    for (let i = 0; i < TEXT_COUNT; i++) {
+      arr[i * 3] = spherePositions[i * 3];
+      arr[i * 3 + 1] = spherePositions[i * 3 + 1];
+      arr[i * 3 + 2] = spherePositions[i * 3 + 2];
+    }
+
+    return arr;
+  }, [spherePositions]);
+
+  // ================= ANIMATION =================
+  useFrame(() => {
+    if (!sphereRef.current || !textRef.current) return;
+
+    // Sphere slow rotation
+    sphereRef.current.rotation.y += 0.001;
+    sphereRef.current.rotation.x += 0.0005;
+
+    if (hovered) {
+      sphereRef.current.rotation.y += 0.01 + mouse.x * 0.01;
+      sphereRef.current.rotation.x += 0.005 + mouse.y * 0.01;
+      sphereRef.current.scale.set(1.05, 1.05, 1.05);
+    } else {
+      sphereRef.current.scale.set(1, 1, 1);
+    }
+
+    // Animate text particles
+    const pos = textRef.current.geometry.attributes.position.array;
+
+    for (let i = 0; i < pos.length; i++) {
+      const target = hovered ? textTargets[i] : spherePositions[i];
+      pos[i] += (target - pos[i]) * 0.06;
+    }
+
+    textRef.current.geometry.attributes.position.needsUpdate = true;
   });
 
   return (
@@ -69,30 +145,67 @@ function ParticlePoints() {
         setMouse({ x, y });
       }}
     >
-      <points ref={ref}>
+      {/* MAIN SPHERE */}
+      <points ref={sphereRef}>
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
-            array={positions}
-            count={positions.length / 3}
+            array={spherePositions}
+            count={spherePositions.length / 3}
             itemSize={3}
           />
         </bufferGeometry>
         <pointsMaterial
           size={0.03}
-          color={hovered ? "#facc15" : "#c7d2fe"} // glow on hover
+          color={hovered ? "#facc15" : "#c7d2fe"}
           transparent
           opacity={0.9}
+          depthWrite={false}
+        />
+      </points>
+
+      {/* TEXT PARTICLES */}
+      <points ref={textRef}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            array={textPositions}
+            count={textPositions.length / 3}
+            itemSize={3}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          size={0.035}
+          color={hovered ? "#facc15" : "#c7d2fe"}
+          transparent
+          opacity={0.6}   // dim like sphere
           depthWrite={false}
         />
       </points>
     </group>
   );
 }
-
 function ParticleSphere() {
+  const [cameraZ, setCameraZ] = useState(8);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 500) {
+        setCameraZ(16);
+      } else if (window.innerWidth < 800) {
+        setCameraZ(12);
+      } else {
+        setCameraZ(8);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <Canvas camera={{ position: [0, 0, 8] }}>
+    <Canvas camera={{ position: [0, 0, cameraZ] }} key={cameraZ}>
       <ambientLight intensity={1.4} />
       <ParticlePoints />
     </Canvas>
@@ -169,18 +282,19 @@ export default function Home({ defaultConfig }) {
     <div className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white overflow-x-hidden font-sans">
 
       {/* ================= HERO ================= */}
-      <section className="relative min-h-screen flex items-center px-6 overflow-hidden">
+      <section className="relative min-h-screen flex items-center pt-24 pb-12 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-sky-900/20 via-black to-black" />
 
-        <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        <div className="relative max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
           {/* TEXT */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9 }}
+            className="text-center lg:text-left z-10"
           >
-            <h1 className="text-5xl lg:text-6xl font-extrabold leading-tight bg-gradient-to-r from-white via-sky-200 to-sky-100 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight bg-gradient-to-r from-sky-400 via-blue-500 to-white bg-clip-text text-transparent mb-6 lg:mb-8 pb-2">
               Your Career Journey Starts Here
             </h1>
 
@@ -194,7 +308,7 @@ export default function Home({ defaultConfig }) {
                     "Data Analyst",
                     "Machine Learning",
                     "UI/UX",
-                   "Internships & Jobs"
+                    "Internships & Jobs"
                   ]}
                   loop
                   cursor
@@ -225,7 +339,7 @@ export default function Home({ defaultConfig }) {
           {/* PARTICLE SPHERE */}
           <motion.div
             style={{ y: sphereY, scale: sphereScale }}
-            className="relative w-full h-[500px]"
+            className="relative w-full h-[350px] md:h-[500px]"
           >
             <ParticleSphere />
           </motion.div>
@@ -234,8 +348,8 @@ export default function Home({ defaultConfig }) {
       </section>
 
       {/* ================= STATS ================= */}
-      <section className="py-20 max-w-6xl mx-auto px-6">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="py-12 md:py-20 max-w-6xl mx-auto px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             { icon: <FaBriefcase />, value: stats.jobs, label: 'Jobs' },
             { icon: <FaGraduationCap />, value: stats.internships, label: 'Internships' },
@@ -250,9 +364,9 @@ export default function Home({ defaultConfig }) {
               transition={{ delay: i * 0.1 }}
               className="bg-black/30 border border-sky-500/20 rounded-2xl p-6 text-center"
             >
-              <div className="text-3xl text-sky-400 mb-2">{s.icon}</div>
-              <div className="text-4xl font-black">{s.value}+</div>
-              <div className="text-sky-200">{s.label}</div>
+              <div className="text-3xl text-sky-400 mb-2 flex justify-center">{s.icon}</div>
+              <div className="text-2xl md:text-4xl font-black">{s.value}+</div>
+              <div className="text-sky-200 text-sm md:text-base">{s.label}</div>
             </motion.div>
           ))}
         </div>
@@ -295,8 +409,8 @@ export default function Home({ defaultConfig }) {
           {[
             { icon: <FaRobot />, title: "AI Resume Builder", description: "Create ATS-optimized resumes with AI suggestions.", link: "/resume-builder", linkText: "Build Resume" },
             { icon: <FaChartLine />, title: "ATS Score Checker", description: "Get instant feedback on your resume's ATS compatibility.", link: "/ats-score", linkText: "Check Score" },
-            { icon: <FaLaptopCode />, title: "AI Chatbot", description: "Upskill with courses designed to make you a responsive ChatBot.", link: "/courses", linkText: "AI ChatBot" },
-            { icon: <FaCalendarAlt />, title: "AI Voice Model", description: "Stay updated with career fairs,We stand with you for your broght future.", link: "/events", linkText: "AI Voice Modal" }
+            { icon: <FaLaptopCode />, title: "AI Skill Gap Analyzer", description: "Upskill with courses designed to make you a responsive ChatBot.", link: "/courses", linkText: "AI ChatBot" },
+            { icon: <FaCalendarAlt />, title: "AI Cover Letter Generator", description: "Stay updated with career fairs,We stand with you for your bright future.", link: "/events", linkText: "AI Voice Modal" }
           ].map((feature, i) => (
             <div key={i} className="group bg-black/30 backdrop-blur-lg rounded-2xl border border-sky-500/20 p-6 flex flex-col transition-all duration-300 hover:bg-black/40 hover:border-sky-500/30 hover:shadow-xl hover:shadow-sky-500/20 hover:-translate-y-2">
               <div className="w-16 h-16 rounded-full bg-sky-500/20 flex items-center justify-center text-2xl text-sky-300 mb-5 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
@@ -310,13 +424,13 @@ export default function Home({ defaultConfig }) {
         </div>
       </section>
       {/* ================= HOW IT WORKS ================= */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-black mb-4">How It Works</h2>
+      <section className="py-16 md:py-20 px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-3xl md:text-4xl font-black mb-4">How It Works</h2>
           <p className="text-sky-200 text-lg">Your journey from student to professional</p>
         </div>
 
-        <div className="grid md:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8">
           {[
             { step: "01", title: "Create Profile", desc: "Tell us about your skills & goals" },
             { step: "02", title: "Premium Courses", desc: "Our Courses Help you to enhance your Knowledge" },
@@ -333,46 +447,10 @@ export default function Home({ defaultConfig }) {
               className="bg-black/30 border border-sky-500/20 rounded-2xl p-6 text-center
               hover:-translate-y-2 hover:shadow-lg hover:shadow-sky-500/20 transition-all"
             >
-              <div className="text-5xl font-black text-sky-400 mb-4">{item.step}</div>
-              <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+              <div className="text-4xl md:text-5xl font-black text-sky-400 mb-4">{item.step}</div>
+              <h3 className="text-lg md:text-xl font-bold mb-2">{item.title}</h3>
               <p className="text-sky-200 text-sm">{item.desc}</p>
             </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ================= OPPORTUNITIES ================= */}
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
-          <h2 className="text-4xl font-black text-white mb-4">Find Your Perfect Opportunity</h2>
-          <p className="text-xl text-sky-200 max-w-2xl mx-auto">Tailored for every discipline and career stage</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[
-            { icon: <FaBriefcase />, title: "BTech Opportunities", description: "Technical roles & software internships.", items: ["Software Developer Roles", "Core Engineering", "Research & Development", "Startup Opportunities"], link: "/jobs?category=btech", btnText: "View BTech Jobs", bgGradient: "from-gray-900 to-gray-800" },
-            { icon: <FaGraduationCap />, title: "BSc Opportunities", description: "Research & scientific internships.", items: ["Research Internships", "Laboratory Positions", "Data Science Roles", "Scientific Writing"], link: "/internships?category=bsc", btnText: "View BSc Internships", bgGradient: "from-sky-600 to-sky-500" },
-            { icon: <FaChartLine />, title: "MBA Opportunities", description: "Management & business roles.", items: ["Management Consulting", "Product Management", "Business Analytics", "Marketing & Sales"], link: "/jobs?category=mba", btnText: "View MBA Positions", bgGradient: "from-gray-800 to-gray-700" }
-          ].map((opp, i) => (
-            <div key={i} className="group bg-black/30 backdrop-blur-lg rounded-2xl border border-sky-500/20 overflow-hidden transition-all duration-300 hover:bg-black/40 hover:border-sky-500/30 hover:shadow-xl hover:shadow-sky-500/20 hover:-translate-y-2">
-              <div className={`bg-gradient-to-r ${opp.bgGradient} p-6 text-white flex items-center gap-4`}>
-                <div className="text-2xl">{opp.icon}</div>
-                <h3 className="text-2xl font-bold">{opp.title}</h3>
-              </div>
-              <div className="p-6">
-                <p className="text-sky-200 mb-6">{opp.description}</p>
-                <ul className="space-y-3 mb-8">
-                  {opp.items.map((item, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sky-100">
-                      <FaBolt className="text-sky-400 text-sm" /> {item}
-                    </li>
-                  ))}
-                </ul>
-                <Link to={opp.link} className="block w-full bg-sky-500/20 hover:bg-sky-500/30 text-white text-center font-semibold py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-sky-500/20">
-                  {opp.btnText}
-                </Link>
-              </div>
-            </div>
           ))}
         </div>
       </section>
@@ -441,6 +519,71 @@ export default function Home({ defaultConfig }) {
         </div>
       </section>
 
+      {/* ================= CLIENT WORK PROJECT ================= */}
+      <section className="py-20 px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-black mb-4">Client Work Project</h2>
+          <p className="text-sky-200 text-lg">Showcasing our latest successful collaborations</p>
+        </div>
+
+        <div className="bg-black/30 border border-sky-500/20 rounded-2xl p-12 text-center">
+          <h3 className="text-2xl font-bold text-white mb-4">Project Showcase Coming Soon</h3>
+          <p className="text-sky-200">We are currently updating our portfolio with our latest client work. Stay tuned!</p>
+        </div>
+      </section>
+
+      {/* ================= OUR MORE SITES ================= */}
+      <section className="py-20 px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-black mb-4">Our More Sites</h2>
+          <p className="text-sky-200 text-lg">Explore our specialized services</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Digital Marketing */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="group bg-gradient-to-br from-black/40 to-black/20 border border-sky-500/20 rounded-2xl p-8 hover:shadow-xl hover:shadow-sky-500/20 transition-all"
+          >
+            <div className="text-5xl text-sky-400 mb-6 flex justify-center group-hover:scale-110 transition-transform">
+              <FaBullhorn />
+            </div>
+            <h3 className="text-2xl font-bold mb-4 text-center">Digital Marketing</h3>
+            <p className="text-sky-200 text-center mb-6">
+              Boost your brand presence with our expert digital marketing strategies. SEO, SMM, and more.
+            </p>
+            <div className="text-center">
+              <Link to="/digital-marketing" className="inline-flex items-center gap-2 text-sky-300 font-semibold hover:text-sky-200 transition-colors">
+                Visit Site <FaArrowRight />
+              </Link>
+            </div>
+          </motion.div>
+
+          {/* Video Editing */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="group bg-gradient-to-br from-black/40 to-black/20 border border-sky-500/20 rounded-2xl p-8 hover:shadow-xl hover:shadow-sky-500/20 transition-all"
+          >
+            <div className="text-5xl text-sky-400 mb-6 flex justify-center group-hover:scale-110 transition-transform">
+              <FaVideo />
+            </div>
+            <h3 className="text-2xl font-bold mb-4 text-center">Video Editing & Marketing</h3>
+            <p className="text-sky-200 text-center mb-6">
+              High-quality video production and editing services to tell your brand's story effectively.
+            </p>
+            <div className="text-center">
+              <Link to="/video-editing" className="inline-flex items-center gap-2 text-sky-300 font-semibold hover:text-sky-200 transition-colors">
+                Visit Site <FaArrowRight />
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
 
       {/* ================= CTA ================= */}
       <section className="py-16 px-6 max-w-7xl mx-auto">
@@ -448,11 +591,11 @@ export default function Home({ defaultConfig }) {
           <div className="lg:w-2/3 lg:pr-12 text-center lg:text-left">
             <h2 className="text-4xl md:text-5xl font-black text-white mb-6">Ready to Transform Your Career?</h2>
             <p className="text-xl text-sky-200 mb-8 max-w-2xl">Join thousands of students who've landed their dream jobs through our platform.</p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/signup" className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-1 transition-all duration-300 hover:bg-gradient-to-r hover:from-sky-400 hover:to-sky-500 text-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link to="/signup" className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-1 transition-all duration-300 hover:bg-gradient-to-r hover:from-sky-400 hover:to-sky-500 text-center w-full sm:w-auto">
                 Get Started Free
               </Link>
-              <Link to="/courses" className="bg-black/40 backdrop-blur-sm text-white border-2 border-sky-500/30 px-8 py-4 rounded-full font-semibold text-lg hover:bg-black/50 hover:border-sky-500/50 transition-all duration-300 text-center">
+              <Link to="/courses" className="bg-black/40 backdrop-blur-sm text-white border-2 border-sky-500/30 px-8 py-4 rounded-full font-semibold text-lg hover:bg-black/50 hover:border-sky-500/50 transition-all duration-300 text-center w-full sm:w-auto">
                 Explore Premium Courses
               </Link>
             </div>
@@ -465,64 +608,6 @@ export default function Home({ defaultConfig }) {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ================= SUCCESS STORIES ================= */}
-      <section className="py-28 max-w-7xl mx-auto px-6">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl font-black text-center mb-20"
-        >
-          Success Stories
-        </motion.h2>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              name: "Ananya Sharma",
-              role: "Software Engineer",
-              text: "AI resume builder helped me crack ATS and land my first tech job.",
-              icon: <FaRobot />
-            },
-            {
-              name: "Rohan Verma",
-              role: "Data Analyst",
-              text: "Events & internships section gave me real industry exposure.",
-              icon: <FaBriefcase />
-            },
-            {
-              name: "Priya Mehta",
-              role: "Product Manager",
-              text: "This platform made my career journey structured and confident.",
-              icon: <FaStar />
-            }
-          ].map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-              className="bg-black/30 backdrop-blur-lg border border-sky-500/20 rounded-2xl p-8 text-center
-              hover:-translate-y-2 hover:shadow-xl hover:shadow-sky-500/20 transition-all duration-300"
-            >
-              <div className="text-4xl text-sky-400 mb-4 flex justify-center">
-                {item.icon}
-              </div>
-              <h3 className="text-xl font-bold text-white mb-1">
-                {item.name}
-              </h3>
-              <p className="text-sky-300 text-sm mb-4">
-                {item.role}
-              </p>
-              <p className="text-sky-100 italic">
-                “{item.text}”
-              </p>
-            </motion.div>
-          ))}
         </div>
       </section>
 
