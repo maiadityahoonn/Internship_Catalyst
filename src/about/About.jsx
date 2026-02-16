@@ -4,7 +4,7 @@ import { FaRocket, FaUsers, FaBullseye, FaLightbulb, FaArrowRight } from 'react-
 const teamMembers = [
   {
     role: "Founder",
-    name: "Adity Kumar Gupta",
+    name: "Aditya Kumar Gupta",
     desc: "The creative driving force behind Internship Catalyst, envisioning a platform that transforms career development. With extensive industry experience, the Founder ensures innovative solutions.",
   },
   {
