@@ -187,6 +187,32 @@ export default function Profile() {
                 };
         }
     };
+
+    const EmptyState = () => {
+        const { title, desc, btn, link } = getEmptyState();
+        return (
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="py-20 text-center bg-white/5 border border-white/10 rounded-[2.5rem] border-dashed"
+            >
+                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FaRocket className="text-slate-700 text-2xl" />
+                </div>
+                <h3 className="text-xl font-black text-white mb-2">{title}</h3>
+                <p className="text-slate-500 text-xs font-medium uppercase tracking-widest max-w-[300px] mx-auto leading-relaxed">
+                    {desc}
+                </p>
+                <button
+                    onClick={() => navigate(link)}
+                    className="mt-8 px-8 py-3 bg-white text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-sky-400 transition-all shadow-xl shadow-sky-500/10"
+                >
+                    {btn}
+                </button>
+            </motion.div>
+        );
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#020617] flex items-center justify-center">
@@ -502,25 +528,7 @@ export default function Profile() {
                                             </motion.div>
                                         ))
                                     ) : (
-                                        <motion.div
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className="py-20 text-center bg-white/5 border border-white/10 rounded-[2.5rem] border-dashed"
-                                        >
-                                            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                                                <FaRocket className="text-slate-700 text-2xl" />
-                                            </div>
-                                            <h3 className="text-xl font-black text-white mb-2">{getEmptyState().title}</h3>
-                                            <p className="text-slate-500 text-xs font-medium uppercase tracking-widest max-w-[300px] mx-auto leading-relaxed">
-                                                {getEmptyState().desc}
-                                            </p>
-                                            <button
-                                                onClick={() => navigate(getEmptyState().link)}
-                                                className="mt-8 px-8 py-3 bg-white text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-sky-400 transition-all shadow-xl shadow-sky-500/10"
-                                            >
-                                                {getEmptyState().btn}
-                                            </button>
-                                        </motion.div>
+                                        <EmptyState />
                                     )}
                                 </AnimatePresence>
 

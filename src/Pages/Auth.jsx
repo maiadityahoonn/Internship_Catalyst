@@ -183,7 +183,7 @@ export default function Auth() {
 
           {/* Branding (Single Line) */}
           <div className="flex items-center gap-4 lg:gap-5 mb-8 lg:mb-16 group cursor-pointer w-fit" onClick={() => window.location.href = '/'}>
-            <img src={logoimg} className="w-15 h-20 rounded-3xl" alt="Logo" />
+            <img src={logoimg} className="w-10 h-10 rounded-xl" alt="Logo" />
             <span className="text-xl lg:text-4xl font-black text-white tracking-tight">Internship <span className="text-sky-400">Catalyst</span></span>
           </div>
 
