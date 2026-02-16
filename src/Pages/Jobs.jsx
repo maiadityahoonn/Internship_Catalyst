@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { db, auth } from '../firebase';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import {
   Search,
   MapPin,
@@ -26,6 +27,7 @@ export default function Jobs() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedJobForDetails, setSelectedJobForDetails] = useState(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const navigate = useNavigate();
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,7 +67,7 @@ export default function Jobs() {
       job.skills?.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase())) ||
       job.location?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesOfficeType && matchesSearch;
+    return matchesOfficeType && matchesSearch && matchesExperience;
   });
 
   // Pagination Logic
@@ -76,9 +78,34 @@ export default function Jobs() {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const handleApply = (job) => {
-    if (job.companyUrl) window.open(job.companyUrl, '_blank');
-    else alert('Application link not available.');
+  const handleApply = async (job) => {
+    if (!auth.currentUser) {
+      alert("Please login to apply for this job.");
+      navigate('/auth');
+      return;
+    }
+
+    try {
+      // Save interaction to Firestore
+      await addDoc(collection(db, 'user_interactions'), {
+        userId: auth.currentUser.uid,
+        userEmail: auth.currentUser.email,
+        type: 'job',
+        itemId: job.id,
+        itemTitle: job.title,
+        itemCompany: job.company,
+        itemLocation: job.location,
+        itemLogo: job.logo,
+        timestamp: serverTimestamp()
+      });
+
+      if (job.companyUrl) window.open(job.companyUrl, '_blank');
+      else alert('Application link not available.');
+    } catch (err) {
+      console.error("Error saving interaction:", err);
+      // Still open link even if tracking fails, to not block user
+      if (job.companyUrl) window.open(job.companyUrl, '_blank');
+    }
   };
 
   const clearFilters = () => {
@@ -89,7 +116,7 @@ export default function Jobs() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white pt-32 pb-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-sky-500/30 overflow-x-hidden">
+    <div className="min-h-screen bg-[#020617] text-white pt-24 md:pt-32 pb-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-sky-500/30 overflow-x-hidden">
 
       <div className="max-w-7xl mx-auto">
 
@@ -105,18 +132,18 @@ export default function Jobs() {
               <Briefcase className="w-4 h-4" /> Top-Tier Careers
             </div>
           </motion.div>
-          <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">
+          <h1 className="text-[2.25rem] sm:text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight">
             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Find Your </span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400">Next Big Thing</span>
           </h1>
-          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-light">
+          <p className="text-slate-400 text-base md:text-lg lg:text-xl max-w-2xl mx-auto font-light px-4">
             Curated opportunities with top-tier companies. Verified and ready for you.
           </p>
         </div>
 
         {/* 2. FILTER BAR */}
-        <div className="sticky top-24 z-40 mb-12">
-          <div className="bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 shadow-2xl shadow-black/50 flex flex-col md:flex-row gap-2 max-w-5xl mx-auto">
+        <div className="sticky top-20 md:top-24 z-40 mb-12 px-2">
+          <div className="bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-1.5 md:p-2 shadow-2xl flex flex-col md:flex-row gap-2 max-w-5xl mx-auto">
             <div className="relative flex-1 group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 group-focus-within:text-sky-400 transition-colors" />
               <input
@@ -167,17 +194,38 @@ export default function Jobs() {
                 exit={{ opacity: 0, y: -10 }}
                 className="md:hidden bg-[#0f172a] border border-white/10 rounded-xl p-4 mt-2 shadow-xl mx-4"
               >
-                <select
-                  value={officeType}
-                  onChange={(e) => setOfficeType(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 mb-2 text-white"
-                >
-                  <option value="all">Any Workplace</option>
-                  <option value="in-office">In-Office</option>
-                  <option value="remote">Remote</option>
-                  <option value="hybrid">Hybrid</option>
-                </select>
-                <button onClick={clearFilters} className="w-full p-3 bg-rose-500/10 text-rose-400 rounded-lg font-bold">Clear Filters</button>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Workplace</label>
+                    <select
+                      value={officeType}
+                      onChange={(e) => { setOfficeType(e.target.value); setCurrentPage(1); }}
+                      className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white text-sm"
+                    >
+                      <option value="all">Any Workplace</option>
+                      <option value="in-office">In-Office</option>
+                      <option value="remote">Remote</option>
+                      <option value="hybrid">Hybrid</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Experience</label>
+                    <select
+                      value={minExperience}
+                      onChange={(e) => { setMinExperience(e.target.value); setCurrentPage(1); }}
+                      className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white text-sm"
+                    >
+                      <option value="">Any Experience</option>
+                      <option value="0">Fresher</option>
+                      <option value="1">1+ Year</option>
+                      <option value="3">3+ Years</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button onClick={clearFilters} className="flex-1 p-3 bg-rose-500/10 text-rose-400 rounded-xl font-bold text-sm">Clear Filters</button>
+                    <button onClick={() => setShowMobileFilters(false)} className="flex-1 p-3 bg-sky-500 text-black rounded-xl font-black text-sm uppercase tracking-widest">Apply</button>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -200,7 +248,7 @@ export default function Jobs() {
             <button onClick={clearFilters} className="mt-6 text-sky-400 font-bold hover:underline">Reset All</button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {currentJobs.map((job) => (
               <motion.div
                 layout
@@ -209,7 +257,7 @@ export default function Jobs() {
                 whileHover={{ y: -8, scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
                 key={job.id}
-                className="group relative bg-[#0B1120] border border-white/5 rounded-[2rem] overflow-hidden hover:border-sky-500/30 transition-colors duration-500"
+                className="group relative bg-[#0B1120] border border-white/5 rounded-[1.5rem] md:rounded-[2rem] overflow-hidden hover:border-sky-500/30 transition-colors duration-500"
               >
                 {/* Glow Effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 via-transparent to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
@@ -352,14 +400,14 @@ export default function Jobs() {
                 </button>
               </div>
 
-              <div className="p-8 md:p-10">
-                <div className="flex flex-col md:flex-row gap-6 mb-8">
-                  <div className="w-24 h-24 rounded-2xl bg-[#1e293b] flex items-center justify-center text-4xl border border-white/10">
-                    {selectedJobForDetails.companyLogo || <Building2 className="text-sky-500 w-10 h-10" />}
+              <div className="p-6 sm:p-8 md:p-10">
+                <div className="flex flex-col sm:flex-row gap-6 mb-8">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#1e293b] flex items-center justify-center text-3xl sm:text-4xl border border-white/10 shrink-0">
+                    {selectedJobForDetails.companyLogo || <Building2 className="text-sky-500 w-8 h-8 sm:w-10 sm:h-10" />}
                   </div>
                   <div>
-                    <h2 className="text-3xl font-black text-white mb-2">{selectedJobForDetails.title}</h2>
-                    <p className="text-xl text-slate-400 font-medium">{selectedJobForDetails.company}</p>
+                    <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">{selectedJobForDetails.title}</h2>
+                    <p className="text-lg sm:text-xl text-slate-400 font-medium">{selectedJobForDetails.company}</p>
                   </div>
                 </div>
 

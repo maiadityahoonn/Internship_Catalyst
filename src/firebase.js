@@ -6,14 +6,14 @@ import { getAnalytics } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyCbYU-e9GrB_IXhmpHfG_bIXGh5eGYEOoY",
-    authDomain: "internshipcatalyst-261c8.firebaseapp.com",
-    databaseURL: "https://internshipcatalyst-261c8-default-rtdb.firebaseio.com",
-    projectId: "internshipcatalyst-261c8",
-    storageBucket: "internshipcatalyst-261c8.firebasestorage.app",
-    messagingSenderId: "1037509064725",
-    appId: "1:1037509064725:web:928fc174ede0b729b8361c",
-    measurementId: "G-0E5JMD6RZM"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase

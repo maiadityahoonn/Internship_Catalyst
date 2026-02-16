@@ -15,15 +15,19 @@ import {
   Globe,
   Users,
   Trophy,
-  Video
+  Video,
+  AlertCircle,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getDirectDriveLink } from '../utils/imageUtils';
 
 export default function Events() {
   // State management
   const [events, setEvents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // Added error state
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Filter states
@@ -33,6 +37,7 @@ export default function Events() {
   // Fetch Events from Firestore
   useEffect(() => {
     setLoading(true);
+    setError(null); // Clear previous errors
     // Filter by status: 'approved' at the query level for security and efficiency
     const q = query(
       collection(db, 'events'),
@@ -47,8 +52,10 @@ export default function Events() {
       }));
       setEvents(data);
       setLoading(false);
+      setError(null);
     }, (error) => {
       console.error("Error fetching events:", error);
+      setError(error.message);
       setLoading(false);
     });
 
@@ -57,12 +64,21 @@ export default function Events() {
 
   // Filter Logic (Search and Category)
   const filteredEvents = events.filter(event => {
+    const now = new Date();
+    const startDate = event.startDate ? new Date(event.startDate) : null;
+    const endDate = event.endDate ? new Date(event.endDate) : startDate;
+
+    let eventStatus = 'upcoming';
+    if (startDate && now > endDate) eventStatus = 'past';
+    else if (startDate && now >= startDate && now <= endDate) eventStatus = 'ongoing';
+
+    const matchesStatusLogic = status === 'all' || status === eventStatus;
     const matchesCategory = category === 'all' || event.category === category;
     const matchesSearch = searchTerm === '' ||
       event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    return matchesCategory && matchesSearch;
+    return matchesCategory && matchesSearch && matchesStatusLogic;
   });
 
   const clearFilters = () => {
@@ -101,7 +117,7 @@ export default function Events() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold uppercase tracking-widest mb-6 shadow-glow">
               <Calendar className="w-4 h-4" /> Elite Tech Events
             </div>
-            <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight">
               <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Next-Gen </span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400">Tech Events</span>
             </h1>
@@ -109,17 +125,17 @@ export default function Events() {
               Join elite hackathons, workshops, and conferences. Level up your skills and connect with the global tech community.
             </p>
 
-            <div className="flex flex-wrap items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 to="/event/add"
-                className="group px-8 py-4 bg-white text-black rounded-2xl font-black flex items-center gap-3 hover:bg-sky-400 transition-all shadow-xl shadow-white/5 hover:shadow-sky-500/20 active:scale-95"
+                className="w-full sm:w-auto group px-8 py-4 bg-white text-black rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-sky-400 transition-all shadow-xl shadow-white/5 hover:shadow-sky-500/20 active:scale-95"
               >
                 <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                 Host Your Event
               </Link>
               <button
                 onClick={() => window.scrollTo({ top: window.innerHeight * 0.8, behavior: 'smooth' })}
-                className="px-8 py-4 bg-slate-900/50 backdrop-blur-md border border-white/10 text-white rounded-2xl font-bold flex items-center gap-3 hover:bg-white/5 transition-all"
+                className="w-full sm:w-auto px-8 py-4 bg-slate-900/50 backdrop-blur-md border border-white/10 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-white/5 transition-all"
               >
                 Browse Events <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
@@ -128,8 +144,8 @@ export default function Events() {
         </div>
 
         {/* SEARCH & FILTERS BAR */}
-        <div className="sticky top-24 z-40 mb-16 px-2">
-          <div className="bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 shadow-2xl flex flex-col md:flex-row gap-2 max-w-5xl mx-auto">
+        <div className="sticky top-20 md:top-24 z-40 mb-16 px-2">
+          <div className="bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-1.5 md:p-2 shadow-2xl flex flex-col md:flex-row gap-2 max-w-5xl mx-auto">
             <div className="relative flex-1 group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 group-focus-within:text-sky-400 transition-colors" />
               <input
@@ -189,26 +205,38 @@ export default function Events() {
                 exit={{ opacity: 0, y: -10 }}
                 className="md:hidden bg-[#0f172a]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 mt-2 shadow-xl mx-auto max-w-5xl"
               >
-                <div className="grid grid-cols-2 gap-3">
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-sm"
-                  >
-                    <option value="all">Categories</option>
-                    <option value="hackathon">Hackathons</option>
-                    <option value="workshop">Workshops</option>
-                    <option value="webinar">Webinars</option>
-                  </select>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-sm"
-                  >
-                    <option value="all">Status</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="ongoing">Ongoing</option>
-                  </select>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Category</label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white text-sm"
+                    >
+                      <option value="all">All Categories</option>
+                      <option value="hackathon">Hackathons</option>
+                      <option value="workshop">Workshops</option>
+                      <option value="webinar">Webinars</option>
+                      <option value="competition">Competitions</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Status</label>
+                    <select
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-white text-sm"
+                    >
+                      <option value="all">Any Status</option>
+                      <option value="upcoming">Upcoming</option>
+                      <option value="ongoing">Ongoing</option>
+                      <option value="past">Past</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button onClick={clearFilters} className="flex-1 p-3 bg-rose-500/10 text-rose-400 rounded-xl font-bold text-sm">Clear Filters</button>
+                    <button onClick={() => setShowMobileFilters(false)} className="flex-1 p-3 bg-sky-500 text-black rounded-xl font-black text-sm uppercase tracking-widest">Apply</button>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -218,34 +246,48 @@ export default function Events() {
         {/* EVENTS GRID */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="h-96 bg-slate-900/50 rounded-3xl animate-pulse border border-white/5"></div>
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <div key={n} className="bg-slate-900/40 border border-white/5 rounded-[2.5rem] h-[450px] animate-pulse"></div>
             ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-20 bg-rose-950/20 border border-rose-500/20 rounded-[3rem] backdrop-blur-sm max-w-2xl mx-auto">
+            <div className="w-20 h-20 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle size={40} className="text-rose-400" />
+            </div>
+            <h3 className="text-2xl font-black text-white mb-3">Database Connection Issue</h3>
+            <p className="text-slate-400 mb-6 leading-relaxed">
+              {error.includes('index')
+                ? "The database requires an index to sort events by date. Please click the link in your console to create it."
+                : error}
+            </p>
+            {error.includes('index') && (
+              <div className="p-4 bg-sky-500/10 border border-sky-500/20 rounded-2xl text-sky-400 text-sm font-bold">
+                Manual Action Required: Check browser console for the Firebase index creation link.
+              </div>
+            )}
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="text-center py-20 bg-slate-900/20 border border-white/5 rounded-[3rem] backdrop-blur-sm">
-            <div className="w-20 h-20 bg-sky-500/10 rounded-full flex items-center justify-center mx-auto mb-6 ring-1 ring-sky-500/20">
-              <Search className="w-10 h-10 text-sky-500" />
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Sparkles size={40} className="text-slate-500" />
             </div>
             <h3 className="text-2xl font-black text-white mb-2">No events found</h3>
-            <p className="text-slate-400 max-w-md mx-auto">We couldn't find any events matching your criteria. Try adjusting your filters or search terms.</p>
-            <button
-              onClick={clearFilters}
-              className="mt-8 px-8 py-3 bg-white text-black rounded-xl font-bold hover:bg-sky-400 transition-all shadow-xl"
-            >
-              Clear all filters
-            </button>
+            <p className="text-slate-400">Try adjusting your filters or stay tuned for updates.</p>
+            <p className="text-sky-400/60 text-xs mt-6 font-medium italic">
+              Note: New events require admin approval before they appear here.
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredEvents.map((event) => (
               <motion.div
-                key={event.id}
                 layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="group relative"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ y: -8 }}
+                key={event.id}
+                className="group relative bg-[#0B1120] border border-white/5 rounded-[1.5rem] md:rounded-[2rem] overflow-hidden hover:border-sky-500/30 transition-all duration-500"
               >
                 <Link to={`/event/${event.id}`} className="block h-full">
                   <div className="h-full bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-[2.5rem] overflow-hidden hover:border-sky-500/50 transition-all duration-500 hover:shadow-[0_0_50px_rgba(14,165,233,0.1)] flex flex-col group-hover:-translate-y-2">
@@ -253,7 +295,7 @@ export default function Events() {
                     <div className="relative h-56 w-full overflow-hidden">
                       {event.posterLink ? (
                         <img
-                          src={event.posterLink}
+                          src={getDirectDriveLink(event.posterLink)}
                           alt={event.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
@@ -312,18 +354,7 @@ export default function Events() {
         )}
       </div>
 
-      <style jsx>{`
-        .shadow-glow {
-          box-shadow: 0 0 20px rgba(14, 165, 233, 0.15);
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
+      <div className="h-20"></div>
     </div>
   );
 }

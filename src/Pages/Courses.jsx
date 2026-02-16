@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Rocket, Bell, Home, Laptop, Award, Shield, Target, Glow } from 'lucide-react';
+import { db, auth } from '../firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import {
+  Sparkles, Rocket, Bell, Home, Laptop, Award, Shield, Target, ArrowRight,
+  Layout, Server, Layers, Database, BarChart3, Cpu, GitBranch, Lock, Code2, Orbit
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Courses() {
@@ -8,19 +13,48 @@ export default function Courses() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = async (e) => {
     e.preventDefault();
-    if (email) {
+    if (!auth.currentUser) {
+      alert("Please login to join the waitlist for courses.");
+      navigate('/auth');
+      return;
+    }
+
+    try {
+      if (email) {
+        // Save interaction to Firestore
+        await addDoc(collection(db, 'user_interactions'), {
+          userId: auth.currentUser.uid,
+          userEmail: auth.currentUser.email,
+          type: 'course_waitlist',
+          itemTitle: 'Next-Gen Course Access',
+          itemLocation: 'Waitlist',
+          timestamp: serverTimestamp()
+        });
+
+        setSubscribed(true);
+        setEmail('');
+      }
+    } catch (err) {
+      console.error("Error saving waitlist interaction:", err);
+      // Still show success to user
       setSubscribed(true);
       setEmail('');
     }
   };
 
-  const features = [
-    { icon: <Laptop className="text-sky-400" size={20} />, title: "Live Tech Sessions", desc: "Interactive workshops with industry veterans." },
-    { icon: <Award className="text-amber-400" size={20} />, title: "Global Certifications", desc: "Get certificates recognized by top tech firms." },
-    { icon: <Target className="text-rose-400" size={20} />, title: "Niche Specializations", desc: "From AI/ML to Advanced Cloud Architecture." },
-    { icon: <Shield className="text-emerald-400" size={20} />, title: "Career Placement", desc: "Direct interview pipelines for top students." }
+
+  const upcomingCourses = [
+    { icon: <Layout className="text-sky-400" size={24} />, title: "Frontend Development", desc: "Master Modern UI/UX Architecture" },
+    { icon: <Server className="text-indigo-400" size={24} />, title: "Backend Systems", desc: "Scalable Infrastructure & APIs" },
+    { icon: <Layers className="text-purple-400" size={24} />, title: "Full Stack Mastery", desc: "End-to-End Application Delivery" },
+    { icon: <Database className="text-emerald-400" size={24} />, title: "Database Engineering", desc: "SQL, NoSQL & Data Modeling" },
+    { icon: <BarChart3 className="text-amber-400" size={24} />, title: "Data Analytics", desc: "Insights via Data Visualization" },
+    { icon: <Cpu className="text-rose-400" size={24} />, title: "Data Science", desc: "ML, AI & Predictive Modeling" },
+    { icon: <Orbit className="text-cyan-400" size={24} />, title: "N8N Automation", desc: "No-Code Workflow Engineering" },
+    { icon: <Lock className="text-red-400" size={24} />, title: "Cyber Security", desc: "Pentesting & System Hardening" },
+    { icon: <Code2 className="text-blue-400" size={24} />, title: "DSA & Algorithms", desc: "Foundation for Technical Interviews" }
   ];
 
   return (
@@ -34,7 +68,7 @@ export default function Courses() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header Section */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 px-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -46,7 +80,7 @@ export default function Courses() {
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-black mb-6 tracking-tight leading-none"
+            className="text-4xl sm:text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight"
           >
             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Launch Your </span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400">Next Chapter</span>
@@ -56,7 +90,7 @@ export default function Courses() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed"
+            className="text-slate-400 text-base md:text-lg lg:text-xl max-w-2xl mx-auto font-light leading-relaxed"
           >
             We're curating premium professional courses to turn you into a world-class talent.
             Industry-led, certification-driven, and designed for high performance.
@@ -78,12 +112,12 @@ export default function Courses() {
 
               <div className="lg:col-span-12">
                 <div className="flex flex-col md:flex-row gap-8 items-center justify-between mb-12">
-                  <div className="space-y-4 text-center md:text-left">
-                    <h2 className="text-2xl font-black tracking-tighter uppercase flex items-center gap-3 justify-center md:justify-start">
+                  <div className="space-y-4 text-center md:text-left w-full md:w-auto">
+                    <h2 className="text-xl md:text-2xl font-black tracking-tighter uppercase flex items-center gap-3 justify-center md:justify-start">
                       <Rocket className="text-sky-500" /> System Initialization
                     </h2>
                     <div className="flex items-center gap-4">
-                      <div className="h-2 flex-1 min-w-[200px] bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-2 flex-1 md:min-w-[200px] bg-white/5 rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: "0%" }}
                           animate={{ width: "88%" }}
@@ -103,18 +137,25 @@ export default function Courses() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {features.map((f, i) => (
-                    <div key={i} className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:border-sky-500/30 transition-all group overflow-hidden relative">
-                      <div className="absolute -right-4 -bottom-4 opacity-[0.05] group-hover:opacity-10 transition-opacity">
-                        {React.cloneElement(f.icon, { size: 80 })}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {upcomingCourses.map((course, i) => (
+                    <motion.div
+                      key={i}
+                      whileHover={{ y: -5 }}
+                      className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-sky-500/30 transition-all group overflow-hidden relative"
+                    >
+                      <div className="absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+                        {React.cloneElement(course.icon, { size: 40 })}
                       </div>
-                      <div className="w-10 h-10 rounded-xl bg-sky-500/5 flex items-center justify-center mb-4 transition-colors group-hover:bg-sky-500/10">
-                        {f.icon}
+                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mb-3 group-hover:bg-sky-500/10 transition-colors">
+                        {React.cloneElement(course.icon, { size: 16 })}
                       </div>
-                      <h4 className="font-bold text-sm mb-2">{f.title}</h4>
-                      <p className="text-[10px] text-slate-500 font-medium leading-relaxed uppercase tracking-wider">{f.desc}</p>
-                    </div>
+                      <h4 className="font-black text-sm sm:text-base mb-1 tracking-tight group-hover:text-sky-400 transition-colors">{course.title}</h4>
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-sky-500/5 border border-sky-500/10 w-fit">
+                        <div className="w-1 h-1 bg-sky-500 rounded-full animate-pulse"></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-sky-500/80">Incoming</span>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -122,6 +163,7 @@ export default function Courses() {
             </div>
           </div>
         </motion.div>
+
 
         {/* Newsletter Section */}
         <motion.div

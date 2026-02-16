@@ -10,25 +10,43 @@ import {
   FaBars,
   FaTimes,
   FaRocket,
-  FaChevronDown,
   FaSignOutAlt,
-  FaUserCircle
+  FaUserCircle,
+  FaUserPlus,
+  FaChevronDown
 } from "react-icons/fa";
 import logoimg from "../assets/webpage.jpeg";
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function Navbar({ siteTitle }) {
   const [menuActive, setMenuActive] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAuthHovered, setIsAuthHovered] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUser({ ...currentUser, role: userData.role });
+          } else {
+            setUser(currentUser);
+          }
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+          setUser(currentUser);
+        }
+      } else {
+        setUser(null);
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -60,7 +78,11 @@ export default function Navbar({ siteTitle }) {
     { name: "Internships", path: "/internships", icon: <FaGraduationCap /> },
     { name: "Events", path: "/events", icon: <FaCalendarAlt /> },
     { name: "Courses", path: "/courses", icon: <FaLaptopCode /> },
+    { name: "AI", path: "/ai", icon: <FaRocket /> },
   ];
+
+  const aiPaths = ["/ai", "/ai-cv-builder", "/ats-score-checker", "/skill-gap-analyzer", "/cover-letter-ai", "/ai-resume-templates"];
+  const isAiActive = aiPaths.includes(location.pathname);
 
   return (
     <nav
@@ -72,136 +94,92 @@ export default function Navbar({ siteTitle }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <img src={logoimg} className="w-10 h-10 rounded-xl" alt="Logo" />
-            <div>
-              <div className="text-lg font-bold text-white">
-                {/* {siteTitle || "IC Portal"} */}
+          {/* 1. Logo Section (Left) */}
+          <div className="flex-1 flex items-center justify-start">
+            <Link to="/" className="flex items-center space-x-3 group">
+              <img src={logoimg} className="w-10 h-10 rounded-xl shadow-lg shadow-sky-500/10 group-hover:scale-110 transition-transform duration-500" alt="Logo" />
+              <div className="text-base sm:text-lg md:text-xl text-white font-bold tracking-tight whitespace-nowrap">
+                Internship <span className="text-sky-400">Catalyst</span>
               </div>
-              <div className="text-x text-white font-bold">Internship <span className="text-sky-400">Catalyst</span></div>
-            </div>
-          </Link>
-
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${location.pathname === item.path
-                  ? "bg-sky-500/20 text-white border border-sky-500/30"
-                  : "text-sky-200 hover:text-white hover:bg-black/40"
-                  }`}
-              >
-                {item.icon}
-                {item.name}
-              </Link>
-            ))}
-
-            {/* AI Resume Builder Dropdown */}
-            <div className="relative group">
-              <button
-                className="ml-2 px-5 py-2 rounded-full bg-gradient-to-r from-sky-500 to-sky-600 text-white font-semibold text-sm shadow-lg shadow-sky-500/30 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center space-x-2"
-              >
-                <FaRocket className="text-xs" />
-                <span>AI Resume Builder</span>
-                <FaChevronDown className="text-xs ml-1 group-hover:rotate-180 transition-transform duration-300" />
-              </button>
-
-              <div className="absolute right-0 top-full mt-2 w-64 bg-black/90 backdrop-blur-xl border border-sky-500/20 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right overflow-hidden z-50">
-                <div className="p-2 space-y-1">
-                  <Link to="/ai-cv-builder" className="block px-4 py-3 rounded-lg hover:bg-sky-500/20 text-sky-100 hover:text-white transition-colors">
-                    <div className="font-semibold text-sm">AI CV Builder</div>
-                    <div className="text-xs text-sky-400/70">Create ATS-friendly resumes</div>
-                  </Link>
-                  <Link to="/ats-score-checker" className="block px-4 py-3 rounded-lg hover:bg-sky-500/20 text-sky-100 hover:text-white transition-colors">
-                    <div className="font-semibold text-sm">AI ATS Score Checker</div>
-                    <div className="text-xs text-sky-400/70">Check your resume score</div>
-                  </Link>
-                  <Link to="/skill-gap-analyzer" className="block px-4 py-3 rounded-lg hover:bg-sky-500/20 text-sky-100 hover:text-white transition-colors">
-                    <div className="font-semibold text-sm">AI Skill Gap Analyzer</div>
-                    <div className="text-xs text-sky-400/70">Analyze missing skills</div>
-                  </Link>
-                  <Link to="/cover-letter-ai" className="block px-4 py-3 rounded-lg hover:bg-sky-500/20 text-sky-100 hover:text-white transition-colors">
-                    <div className="font-semibold text-sm">AI Cover Letter Generator</div>
-                    <div className="text-xs text-sky-400/70">Generate custom cover letters</div>
-                  </Link>
-
-                </div>
-              </div>
-            </div>
-
-            {/* Sign Up / Login (Only if NOT logged in) - MOVED TO LAST */}
-            {!user && (
-              <Link
-                to="/auth"
-                className={`ml-2 flex items-center gap-2 px-4 py-2 rounded-lg transition ${location.pathname === "/auth"
-                  ? "bg-sky-500/20 text-white border border-sky-500/30"
-                  : "text-sky-200 hover:text-white hover:bg-black/40"
-                  }`}
-              >
-                <FaUser />
-                Sign Up/Login
-              </Link>
-            )}
-
-            {/* Profile Dropdown (Only if User is Logged In) */}
-            {user && (
-              <div className="relative ml-2">
-                <button
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-full border border-sky-500/30 bg-sky-500/10 text-white hover:bg-sky-500/20 transition-all"
-                >
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt="User" className="w-8 h-8 rounded-full border border-sky-500" />
-                  ) : (
-                    <FaUserCircle className="text-2xl text-sky-400" />
-                  )}
-                  {/* <span className="text-sm font-semibold max-w-[100px] truncate">{user.displayName || user.email}</span> */}
-                  <FaChevronDown className={`text-xs transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {isProfileOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-black/90 backdrop-blur-xl border border-sky-500/20 rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in">
-                    <div className="p-4 border-b border-white/10">
-                      <p className="text-sm font-bold text-white truncate">{user.displayName || "User"}</p>
-                      <p className="text-xs text-slate-400 truncate">{user.email}</p>
-                    </div>
-                    <div className="p-1">
-                      <Link
-                        to="/admin/dashboard"
-                        onClick={() => setIsProfileOpen(false)}
-                        className="w-full flex items-center gap-2 px-4 py-3 text-sky-400 hover:bg-sky-500/10 hover:text-sky-300 rounded-lg transition-colors text-sm font-semibold"
-                      >
-                        <FaRocket /> Admin Dashboard
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-2 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors text-sm font-semibold"
-                      >
-                        <FaSignOutAlt /> Logout
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            </Link>
           </div>
 
-          {/* Mobile Button */}
-          <button
-            className="md:hidden w-10 h-10 flex items-center justify-center text-white"
-            onClick={() => setMenuActive(!menuActive)}
-          >
-            {menuActive ? <FaTimes /> : <FaBars />}
-          </button>
+          {/* 2. Desktop Navigation (Center) */}
+          <div className="hidden md:flex flex-[2] items-center justify-center space-x-0.5">
+            {navItems.map((item) => {
+              const isActive = item.name === "AI" ? isAiActive : location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`text-[13px] font-bold px-4 py-2 rounded-xl transition-all duration-300 flex items-center gap-2 ${isActive
+                    ? "text-sky-400 bg-sky-500/10 border border-sky-500/20"
+                    : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+                    }`}
+                >
+                  <span className="text-xs">{item.icon}</span>
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* 3. Auth Section & Mobile Toggle (Right) */}
+          <div className="flex-1 flex items-center justify-end gap-3">
+            {/* Desktop Auth Section */}
+            <div className="hidden md:flex items-center gap-3">
+              {!user ? (
+                <Link
+                  to="/auth"
+                  onMouseEnter={() => setIsAuthHovered(true)}
+                  onMouseLeave={() => setIsAuthHovered(false)}
+                  className="relative group"
+                >
+                  <div className="relative flex items-center gap-3 px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 hover:border-sky-500/50 text-white transition-all duration-300">
+                    <span className="text-[13px] font-black uppercase tracking-wider">Sign Up / Login</span>
+                    <div className="flex items-center gap-2">
+                      {isAuthHovered ? (
+                        <FaUserPlus className="text-sky-400 animate-in fade-in zoom-in duration-300" />
+                      ) : (
+                        <FaRocket className="text-slate-400 group-hover:text-sky-400 transition-colors" />
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <div className="relative">
+                  <button
+                    onClick={() => navigate(user.role === 'admin' ? '/admin/dashboard' : '/profile')}
+                    className="flex items-center gap-2 p-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-white hover:bg-sky-500/20 transition-all group"
+                  >
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt="User" className="w-8 h-8 rounded-full border border-sky-500 group-hover:scale-105 transition-transform" />
+                    ) : (
+                      <FaUserCircle className="text-2xl text-sky-400 group-hover:scale-105 transition-transform" />
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              className="md:hidden w-10 h-10 flex items-center justify-center text-white text-2xl hover:text-sky-400 transition-colors"
+              onClick={() => setMenuActive(!menuActive)}
+            >
+              <div className="relative w-6 h-5">
+                <span className={`absolute left-0 w-full h-0.5 bg-white rounded-full transition-all duration-300 ${menuActive ? 'top-2 rotate-45' : 'top-0'}`}></span>
+                <span className={`absolute left-0 w-full h-0.5 bg-white rounded-full transition-all duration-300 top-2 ${menuActive ? 'opacity-0 scale-0' : 'opacity-100'}`}></span>
+                <span className={`absolute left-0 w-full h-0.5 bg-white rounded-full transition-all duration-300 ${menuActive ? 'top-2 -rotate-45' : 'top-4'}`}></span>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {menuActive && (
-        <div className="md:hidden bg-black/95 border-t border-sky-500/20 px-4 py-4">
+        <div className="md:hidden bg-black/95 border-t border-sky-500/20 px-4 py-4 max-h-[80vh] overflow-y-auto">
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -214,55 +192,51 @@ export default function Navbar({ siteTitle }) {
             </Link>
           ))}
 
-          <Link
-            to="/ai-cv-builder"
-            onClick={() => setMenuActive(false)}
-            className="mt-4 flex items-center justify-center gap-2 bg-sky-600 py-3 rounded-lg text-white font-semibold shadow-lg shadow-sky-500/20"
-          >
-            <FaRocket /> AI Resume Builder
-          </Link>
-
-          {/* Mobile User Profile Section */}
-          {user ? (
-            <div className="mt-4 border-t border-white/10 pt-4">
-              <div className="flex items-center gap-3 mb-4 px-2">
-                {user.photoURL ? (
-                  <img src={user.photoURL} alt="User" className="w-10 h-10 rounded-full border border-sky-500" />
-                ) : (
-                  <FaUserCircle className="text-3xl text-sky-400" />
-                )}
-                <div className="overflow-hidden">
-                  <p className="text-sm font-bold text-white truncate">{user.displayName || "User"}</p>
-                  <p className="text-xs text-slate-400 truncate">{user.email}</p>
-                </div>
-              </div>
+          {/* Mobile Account Section */}
+          <div className="mt-6 pt-6 border-t border-white/10">
+            {!user ? (
               <Link
-                to="/admin/dashboard"
+                to="/auth"
                 onClick={() => setMenuActive(false)}
-                className="w-full flex items-center gap-3 px-3 py-3 text-sky-400 hover:bg-sky-500/10 rounded-lg transition-colors mb-2"
+                className="flex items-center justify-between w-full px-4 py-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-white"
               >
-                <FaRocket /> Admin Dashboard
+                <div className="flex items-center gap-3">
+                  <FaRocket className="text-sky-400" />
+                  <span className="text-sm font-black uppercase tracking-wider">Join / Login</span>
+                </div>
+                <FaUserPlus className="text-sky-400" />
               </Link>
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setMenuActive(false);
-                }}
-                className="w-full flex items-center gap-3 px-3 py-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-              >
-                <FaSignOutAlt /> Logout
-              </button>
-            </div>
-          ) : (
-            <Link
-              to="/auth"
-              onClick={() => setMenuActive(false)}
-              className="mt-4 flex items-center gap-3 py-3 text-sky-200 hover:text-white border-t border-white/10"
-            >
-              <FaUser />
-              Sign Up/Login
-            </Link>
-          )}
+            ) : (
+              <div className="space-y-1">
+                <Link
+                  to={user.role === 'admin' ? '/admin/dashboard' : '/profile'}
+                  onClick={() => setMenuActive(false)}
+                  className="flex items-center gap-3 px-4 py-3 mb-2 bg-white/5 rounded-2xl border border-white/10"
+                >
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="User" className="w-10 h-10 rounded-full border border-sky-500" />
+                  ) : (
+                    <FaUserCircle className="text-3xl text-sky-400" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-black text-white truncate">{user.displayName || "Explorer"}</p>
+                    <p className="text-[10px] text-slate-400 truncate tracking-wide">{user.email}</p>
+                  </div>
+                </Link>
+
+                {user.email === 'admin@internshipcatalyst.com' && (
+                  <Link
+                    to="/admin/dashboard"
+                    onClick={() => setMenuActive(false)}
+                    className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-sky-400 hover:bg-sky-500/10 font-bold transition-all"
+                  >
+                    <FaRocket size={14} /> Dashboard
+                  </Link>
+                )}
+
+              </div>
+            )}
+          </div>
         </div>
       )}
     </nav>

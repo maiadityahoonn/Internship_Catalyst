@@ -1,48 +1,85 @@
-import MainLayout from "../layouts/MainLayout";
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FaCloudUploadAlt,
+  FaFileAlt,
+  FaCheck,
+  FaTimes,
+  FaSearch,
+  FaChartPie,
+  FaLightbulb,
+  FaShieldAlt,
+  FaRocket,
+  FaArrowRight,
+  FaExclamationTriangle,
+  FaHistory,
+  FaWrench,
+  FaCheckCircle,
+  FaLock,
+} from "react-icons/fa";
+import { Loader2, Sparkles, RefreshCw, ChevronRight, Info, Zap, Layout, Terminal } from "lucide-react";
+import MainLayout from "../layouts/MainLayout";
+import { analyzeATS } from "../services/gemini";
+import { auth } from "../firebase";
+import { isToolPurchased, PRICING } from "../utils/aiMonetization";
+import { useNavigate } from "react-router-dom";
 
 // Initialize worker using static file from public folder
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 export default function ATSScoreChecker() {
+  const navigate = useNavigate();
+  const [isLocked, setIsLocked] = useState(true);
   const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [fileName, setFileName] = useState("");
   const [isTagsProcessing, setIsTagsProcessing] = useState(false);
   const [processingError, setProcessingError] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState(null);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
+
   const fileInputRef = useRef(null);
+  const resultRef = useRef(null);
 
   const handleBrowseClick = () => {
     fileInputRef.current.click();
   };
 
-  const handleFileChange = async (event) => {
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (!auth.currentUser) {
+        navigate('/auth');
+        return;
+      }
+      const owned = await isToolPurchased(auth.currentUser.uid, 'ats-checker');
+      setIsLocked(!owned);
+    };
+    checkAccess();
+  }, [navigate]);
+
+  const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     setFileName(file.name);
-    setResumeText(""); // Clear previous text
+    setResumeText("");
     setProcessingError("");
     setIsTagsProcessing(true);
 
     try {
       const text = await extractText(file);
-      console.log("Extracted text length:", text ? text.length : 0);
-
       if (text && text.trim().length > 15) {
         setResumeText(text);
         setProcessingError("");
       } else {
-        const len = text ? text.trim().length : 0;
-        setProcessingError(`Text too short (${len} chars). If this is a valid resume, it might be an image scan which is not supported.`);
+        setProcessingError("Text extraction yielded too little content. Please try a different file.");
       }
     } catch (err) {
-      console.error("Processing error:", err);
-      setProcessingError("Failed to process file. " + err.message);
+      setProcessingError("Failed to process file: " + err.message);
     } finally {
       setIsTagsProcessing(false);
     }
@@ -50,254 +87,649 @@ export default function ATSScoreChecker() {
 
   const extractText = async (file) => {
     const fileType = file.type;
-    console.log("Processing file type:", fileType);
-
     try {
       if (fileType === "application/pdf" || file.name.endsWith(".pdf")) {
         const arrayBuffer = await file.arrayBuffer();
-
-        // Use cMaps for better font support
         const loadingTask = pdfjsLib.getDocument({
           data: arrayBuffer,
           cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/cmaps/`,
           cMapPacked: true,
         });
-
         const pdf = await loadingTask.promise;
         let text = "";
-
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
-
-          // Add spaces between items to preserve word boundaries
-          const pageText = content.items.map((item) => item.str).join(" ");
-          text += pageText + "\n";
+          text += content.items.map((item) => item.str).join(" ") + "\n";
         }
-
         return text;
-      } else if (
-        fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-        file.name.endsWith(".docx")
-      ) {
+      } else if (fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || file.name.endsWith(".docx")) {
         const arrayBuffer = await file.arrayBuffer();
         const result = await mammoth.extractRawText({ arrayBuffer });
         return result.value;
-      } else if (fileType === "text/plain" || file.name.endsWith(".txt")) {
-        return await file.text();
       } else {
-        throw new Error("Unsupported file format. Please upload PDF, DOCX, or TXT.");
+        return await file.text();
       }
-    } catch (error) {
-      console.error("Error extracting text:", error);
-      throw error;
+    } catch (err) {
+      throw err;
     }
   };
 
-  const calculateATS = () => {
+  const handleAnalyze = async () => {
     if (!resumeText) {
-      alert("Please upload a resume first and wait for processing to complete.");
+      setError("Please upload your resume first.");
       return;
     }
     if (!jobDescription) {
-      alert("Please enter a job description.");
+      setError("Please enter a Job Description for accurate matching.");
       return;
     }
 
+    setError("");
     setIsAnalyzing(true);
+    setResult(null);
 
-    // Simulated delay for effect
-    setTimeout(() => {
-      // 1. Tokenize & Clean Text
-      const cleanText = (text) =>
-        text
-          .toLowerCase()
-          .replace(/[^a-z0-9\s]/g, "") // Remove special chars
-          .split(/\s+/) // Split by whitespace
-          .filter((word) => word.length > 2); // Remove short words
-
-      const jdKeywords = new Set(cleanText(jobDescription));
-      const resumeKeywords = new Set(cleanText(resumeText));
-
-      // Stop words to ignore (simple list)
-      const stopWords = new Set(["the", "and", "for", "that", "with", "this", "from", "have", "are", "was", "will", "your", "with", "experience"]);
-
-      const importantKeywords = [...jdKeywords].filter(k => !stopWords.has(k));
-
-      if (importantKeywords.length === 0) {
-        alert("Job description is too short or lacks keywords.");
-        setIsAnalyzing(false);
-        return;
-      }
-
-      // 2. Find Matches
-      const matched = importantKeywords.filter((k) => resumeKeywords.has(k));
-      const missing = importantKeywords.filter((k) => !resumeKeywords.has(k));
-
-      // 3. Calculate Score
-      const score = Math.round((matched.length / importantKeywords.length) * 100) || 0;
-
-      setAnalysisResult({
-        score,
-        matched: matched.slice(0, 15),
-        missing: missing.slice(0, 15),
-      });
-
+    try {
+      const data = await analyzeATS(resumeText, jobDescription);
+      setResult(data);
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
       setIsAnalyzing(false);
-    }, 1000);
+    }
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 80) return "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
+    if (score >= 50) return "text-sky-400 border-sky-500/30 bg-sky-500/10";
+    return "text-rose-400 border-rose-500/30 bg-rose-500/10";
   };
 
   return (
-    <MainLayout>
-      <div className="max-w-4xl mx-auto px-4">
-        {/* 🔹 HERO SECTION */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-sky-400">AI ATS Score Checker</h1>
-          <p className="mt-3 text-sky-200 max-w-2xl mx-auto">
-            Analyze your resume and check how well it matches ATS requirements.
-          </p>
+    <MainLayout noContainer={true}>
+      <div className="min-h-screen bg-[#020617] text-white p-4 md:p-8 font-sans pb-24 relative">
+        {/* Background Decor */}
+        <div className="fixed inset-0 pointer-events-none -z-10 mt-20">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-sky-500/5 blur-[120px] rounded-full"></div>
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/5 blur-[120px] rounded-full"></div>
         </div>
 
-        {/* 🔹 INPUT SECTION */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-
-          {/* LEFT – UPLOAD RESUME */}
-          <div className="bg-slate-900/60 p-6 rounded-xl border border-sky-500/20 hover:border-sky-500 transition-all duration-300">
-            <h2 className="text-2xl font-semibold text-white mb-4">Upload Resume</h2>
-
-            <div
-              className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-sky-500/40 rounded-lg text-sky-300 hover:bg-slate-800 transition cursor-pointer relative"
-              onClick={handleBrowseClick}
+        <div className="max-w-6xl mx-auto mt-20 md:mt-24">
+          {/* Header */}
+          <div className="text-center mb-12 sm:mb-16">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold uppercase tracking-widest mb-6"
             >
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
-              />
-              <p className="text-sm">Drag & drop your resume or click to browse</p>
-              <p className="text-xs mt-1 text-slate-400">(PDF / DOCX / TXT)</p>
+              <FaShieldAlt className="animate-pulse" /> Neural ATS Defense
+            </motion.div>
+            <h1 className="text-4xl sm:text-6xl font-black mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">
+              ATS Score <span className="text-sky-500">Intelligence</span>
+            </h1>
+            <p className="text-slate-500 text-sm sm:text-lg max-w-2xl mx-auto font-medium">
+              Don't leave your career to chance. Our neural matching engine reverse-engineers recruiter algorithms with 95% accuracy.
+            </p>
+          </div>
 
-              {isTagsProcessing && (
-                <div className="absolute inset-0 bg-slate-900/80 flex items-center justify-center rounded-lg">
-                  <p className="text-sky-400 animate-pulse font-semibold">Processing file...</p>
+          {/* PAYWALL OVERLAY */}
+          <AnimatePresence>
+            {isLocked && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="relative z-50 p-8 sm:p-12 rounded-[2.5rem] bg-slate-900/60 backdrop-blur-2xl border border-white/10 text-center overflow-hidden"
+              >
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-sky-500/5 blur-3xl -z-10"></div>
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mx-auto mb-6 shadow-lg shadow-amber-500/10">
+                  <FaLock size={24} />
                 </div>
-              )}
-
-              {fileName && !isTagsProcessing && !processingError && (
-                <div className="mt-4 px-4 py-2 bg-slate-800 rounded text-green-400 font-mono text-sm border border-green-500/30 flex items-center gap-2">
-                  <span>✓</span> {fileName}
-                  <span className="text-xs text-slate-400 ml-2">({resumeText.length} chars)</span>
+                <h2 className="text-xl sm:text-2xl font-black mb-3 uppercase tracking-tight text-white">Protocol Restricted</h2>
+                <p className="text-slate-400 text-xs sm:text-sm max-w-sm mx-auto mb-8 font-medium leading-relaxed">
+                  The ATS Score Intelligence system is an elite protocol. Unlock full access to audit your resume health for just <span className="text-white font-black">₹{PRICING['ats-checker']}</span>.
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <button
+                    onClick={() => navigate('/ai-hub')}
+                    className="px-8 py-3.5 rounded-xl bg-white text-black font-black uppercase tracking-widest text-[10px] hover:bg-sky-400 transition-all shadow-xl shadow-sky-500/20 w-full sm:w-auto"
+                  >
+                    Buy Access
+                  </button>
+                  <button
+                    onClick={() => navigate('/ai-hub')}
+                    className="px-8 py-3.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all w-full sm:w-auto"
+                  >
+                    Back to Hub
+                  </button>
                 </div>
-              )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-              {processingError && (
-                <div className="mt-4 px-4 py-2 bg-red-900/30 rounded text-red-400 font-mono text-xs border border-red-500/30 max-w-[90%] text-center">
-                  ⚠ {processingError}
+          {!isLocked && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* 📥 INPUTS AREA (COL-5) */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="lg:col-span-12 xl:col-span-5 space-y-6"
+              >
+                {/* UPLOAD CARD */}
+                <div className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-sky-500/20 to-blue-500/20 rounded-[2.5rem] blur opacity-10 group-hover:opacity-30 transition duration-500" />
+                  <div className="relative bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-6 sm:p-8 flex flex-col gap-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
+                          <FaCloudUploadAlt className="text-sky-400" size={18} />
+                        </div>
+                        <div>
+                          <h2 className="text-sm font-black uppercase tracking-tight text-white">
+                            Resume Source
+                          </h2>
+                          <p className="text-[10px] text-slate-500 font-medium">PDF, DOCX, or TXT</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      onClick={handleBrowseClick}
+                      className={`relative h-48 border-2 border-dashed rounded-[1.5rem] flex flex-col items-center justify-center transition-all cursor-pointer overflow-hidden ${fileName
+                        ? "border-emerald-500/30 bg-emerald-500/5"
+                        : "border-white/10 bg-white/[0.02] hover:bg-white/5 hover:border-sky-500/40"
+                        }`}
+                    >
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        accept=".pdf,.docx,.txt"
+                      />
+
+                      {isTagsProcessing ? (
+                        <div className="flex flex-col items-center gap-3">
+                          <Loader2 className="animate-spin text-sky-400" size={32} />
+                          <span className="text-xs font-black uppercase tracking-widest text-sky-400">
+                            Extracting Text...
+                          </span>
+                        </div>
+                      ) : fileName ? (
+                        <div className="flex flex-col items-center gap-2 text-center px-4">
+                          <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-2">
+                            <FaCheckCircle size={24} />
+                          </div>
+                          <span className="text-sm font-bold text-white truncate max-w-[200px]">
+                            {fileName}
+                          </span>
+                          <span className="text-[10px] text-slate-500 uppercase tracking-widest">
+                            {resumeText.length} Characters Detected
+                          </span>
+                          <button className="mt-2 text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 hover:text-emerald-400 transition-colors">
+                            Replace File
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-3 text-center px-4">
+                          <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500 group-hover:text-sky-400 transition-colors">
+                            <FaFileAlt size={24} />
+                          </div>
+                          <p className="text-xs font-bold text-slate-400">
+                            Click to upload your resume
+                          </p>
+                          <p className="text-[10px] text-slate-600 uppercase tracking-widest leading-none">
+                            Max size 10MB
+                          </p>
+                        </div>
+                      )}
+
+                      {processingError && (
+                        <div className="absolute inset-0 bg-rose-900/80 backdrop-blur-sm flex items-center justify-center p-6 text-center">
+                          <p className="text-[11px] font-bold text-white">{processingError}</p>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setProcessingError("");
+                            }}
+                            className="absolute top-2 right-2 text-white/50 hover:text-white"
+                          >
+                            <FaTimes />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
 
-              {!fileName && (
-                <button className="mt-4 px-5 py-2 rounded-lg bg-sky-500 text-white hover:bg-sky-600 transition">
-                  Browse File
+                {/* JD CARD */}
+                <div className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-[2.5rem] blur opacity-10 group-hover:opacity-30 transition duration-500" />
+                  <div className="relative bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-6 sm:p-8 flex flex-col gap-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                        <FaSearch className="text-blue-400" size={18} />
+                      </div>
+                      <div>
+                        <h2 className="text-sm font-black uppercase tracking-tight text-white">
+                          Target Requirements
+                        </h2>
+                        <p className="text-[10px] text-slate-500 font-medium">Job Description</p>
+                      </div>
+                    </div>
+
+                    <textarea
+                      rows={8}
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      placeholder="Paste the Job Description here. The more you paste, the more accurate the neural match becomes..."
+                      className="w-full p-5 rounded-2xl bg-white/[0.03] border border-white/10 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 outline-none text-white placeholder:text-slate-700 transition-all duration-300 text-sm font-serif italic"
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold flex items-center gap-3">
+                    <FaExclamationTriangle shrink={0} /> {error}
+                  </div>
+                )}
+
+                <button
+                  onClick={handleAnalyze}
+                  disabled={isAnalyzing || isTagsProcessing || !resumeText}
+                  className="w-full py-5 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-black uppercase tracking-[0.2em] text-xs hover:shadow-2xl hover:shadow-sky-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-xl"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      System Analysis...
+                    </>
+                  ) : (
+                    <>
+                      <Zap size={16} /> Run Neural Audit
+                    </>
+                  )}
                 </button>
-              )}
+              </motion.div>
+
+              {/* 📊 RESULTS AREA (COL-7) */}
+              <div className="lg:col-span-12 xl:col-span-7">
+                <AnimatePresence mode="wait">
+                  {result ? (
+                    <motion.div
+                      key="result"
+                      ref={resultRef}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="space-y-6"
+                    >
+                      {/* SCORE & SUMMARY CARD */}
+                      <div className="relative group">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 rounded-[2.5rem] blur opacity-10" />
+                        <div className="relative bg-slate-900/60 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] p-8 sm:p-10">
+                          <div className="flex flex-col md:flex-row items-center gap-10">
+                            {/* THE RADAR SCORE */}
+                            <div className="relative w-40 h-40 shrink-0">
+                              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                <circle
+                                  cx="50"
+                                  cy="50"
+                                  r="42"
+                                  fill="none"
+                                  stroke="#1e293b"
+                                  strokeWidth="8"
+                                />
+                                <motion.circle
+                                  cx="50"
+                                  cy="50"
+                                  r="42"
+                                  fill="none"
+                                  stroke="url(#atsGradient)"
+                                  strokeWidth="8"
+                                  strokeLinecap="round"
+                                  strokeDasharray={264}
+                                  initial={{ strokeDashoffset: 264 }}
+                                  animate={{
+                                    strokeDashoffset: 264 * (1 - result.score / 100),
+                                  }}
+                                  transition={{ duration: 1.5, ease: "easeOut" }}
+                                />
+                                <defs>
+                                  <linearGradient id="atsGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#0ea5e9" />
+                                    <stop offset="100%" stopColor="#6366f1" />
+                                  </linearGradient>
+                                </defs>
+                              </svg>
+                              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <motion.span
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.5 }}
+                                  className="text-4xl font-black text-white"
+                                >
+                                  {result.score}%
+                                </motion.span>
+                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                                  ATS Match
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex-1 text-center md:text-left">
+                              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-400 mb-2">
+                                System Intelligence Report
+                              </h3>
+                              <h2 className="text-2xl sm:text-3xl font-black mb-3 tracking-tight">
+                                {result.score >= 80
+                                  ? "Strong Pass"
+                                  : result.score >= 50
+                                    ? "Partial Match"
+                                    : "Neural Gap Detected"}
+                              </h2>
+                              <p className="text-slate-400 text-sm leading-relaxed font-medium mb-6">
+                                {result.summary}
+                              </p>
+                              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                                <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                  <FaShieldAlt size={12} /> Format:{" "}
+                                  {result.formattingAudit.isSafe ? "Safe" : "At Risk"}
+                                </div>
+                                <div className="px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                  <Sparkles size={12} /> Impact: {result.impactScore}%
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* TABS NAVIGATION */}
+                      <div className="flex flex-wrap gap-2 justify-center">
+                        {[
+                          { id: "overview", label: "Semantic Audit", icon: <Layout size={14} /> },
+                          { id: "fixes", label: "Boost My Score", icon: <FaRocket size={12} /> },
+                          { id: "formatting", label: "Formatting Health", icon: <FaShieldAlt size={12} /> },
+                        ].map((tab) => (
+                          <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id
+                              ? "bg-gradient-to-r from-sky-500/20 to-blue-500/20 border border-sky-500/30 text-white"
+                              : "bg-white/[0.02] border border-white/5 text-slate-500 hover:text-white"
+                              }`}
+                          >
+                            {tab.icon} {tab.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* TAB CONTENT */}
+                      <AnimatePresence mode="wait">
+                        {activeTab === "overview" && (
+                          <motion.div
+                            key="overview"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                          >
+                            {/* Semantic Matches */}
+                            <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 sm:p-8">
+                              <h4 className="text-[11px] font-black uppercase tracking-widest text-emerald-400 mb-6 flex items-center gap-2">
+                                <FaCheckCircle /> Semantic Strengths
+                              </h4>
+                              <div className="space-y-4">
+                                {result.semanticMatches.map((match, i) => (
+                                  <div
+                                    key={i}
+                                    className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10"
+                                  >
+                                    <div className="flex justify-between items-center mb-1">
+                                      <span className="text-xs font-bold text-white">
+                                        {match.concept}
+                                      </span>
+                                      <span className="text-[9px] font-black text-emerald-500/70 uppercase">
+                                        {match.relevance}
+                                      </span>
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 leading-tight">
+                                      {match.detail}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Keyword Gaps */}
+                            <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 sm:p-8">
+                              <h4 className="text-[11px] font-black uppercase tracking-widest text-orange-400 mb-6 flex items-center gap-2">
+                                <FaExclamationTriangle /> Critical Keywords Gap
+                              </h4>
+                              <div className="space-y-4">
+                                {result.keywordGap.map((gap, i) => (
+                                  <div
+                                    key={i}
+                                    className="p-4 rounded-2xl bg-orange-500/5 border border-orange-500/10"
+                                  >
+                                    <div className="flex justify-between items-center mb-1">
+                                      <span className="text-xs font-bold text-white">
+                                        {gap.keyword}
+                                      </span>
+                                      <span className="text-[9px] font-black text-orange-500/70 uppercase">
+                                        {gap.importance}
+                                      </span>
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 leading-tight">
+                                      {gap.fix}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {activeTab === "fixes" && (
+                          <motion.div
+                            key="fixes"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="space-y-4"
+                          >
+                            <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 mb-2">
+                              <p className="text-xs text-indigo-300 font-medium leading-relaxed italic">
+                                "The following suggestions are neural-optimized specifically for this JD to bypass parsing filters and impress human reviewers."
+                              </p>
+                            </div>
+                            {result.boostMyScore.map((fix, i) => (
+                              <div
+                                key={i}
+                                className="relative bg-slate-900/50 border border-white/5 rounded-[2rem] overflow-hidden group"
+                              >
+                                <div className="p-6 border-b border-white/5">
+                                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                                    <FaHistory /> Original text
+                                  </div>
+                                  <p className="text-xs text-slate-500 line-through italic px-2 border-l border-slate-700">
+                                    {fix.original}
+                                  </p>
+                                </div>
+                                <div className="p-6 bg-sky-500/5">
+                                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-sky-400 mb-2">
+                                    <FaRocket /> AI Recommendation
+                                  </div>
+                                  <p className="text-sm text-white font-bold mb-3">
+                                    {fix.suggested}
+                                  </p>
+                                  <div className="flex items-start gap-2 text-[10px] text-slate-400 font-medium bg-black/20 p-3 rounded-xl border border-white/5">
+                                    <FaLightbulb className="text-amber-400 shrink-0 mt-0.5" />
+                                    <span>{fix.reason}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </motion.div>
+                        )}
+
+                        {activeTab === "formatting" && (
+                          <motion.div
+                            key="formatting"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                          >
+                            <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-[2rem] p-8">
+                              <div className="flex flex-col md:flex-row items-center gap-10 mb-10 pb-10 border-b border-white/5">
+                                <div className="h-32 w-32 rounded-3xl bg-white/[0.02] border border-white/10 flex flex-col items-center justify-center p-4">
+                                  <FaShieldAlt
+                                    size={40}
+                                    className={
+                                      result.formattingAudit.isSafe ? "text-emerald-500" : "text-rose-500"
+                                    }
+                                  />
+                                  <span className="text-[10px] font-black uppercase mt-2">
+                                    Audit Integrity
+                                  </span>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex justify-between items-end mb-2">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                      Parsing Compatibility
+                                    </span>
+                                    <span className="text-sm font-black text-white">
+                                      {result.formattingAudit.score}%
+                                    </span>
+                                  </div>
+                                  <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                                    <motion.div
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${result.formattingAudit.score}%` }}
+                                      className={`h-full ${result.formattingAudit.isSafe ? "bg-emerald-500" : "bg-rose-500"
+                                        }`}
+                                    />
+                                  </div>
+                                  <p className="mt-4 text-xs text-slate-400 font-medium">
+                                    {result.formattingAudit.isSafe
+                                      ? "Your resume's structural layout is optimized for major tracking systems (Workday, Greenhouse, etc.)."
+                                      : "Warning: High risk of parsing failure detected. Simplify your layout to avoid automatic rejection."}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="space-y-3">
+                                <h5 className="text-[10px] font-black uppercase tracking-widest text-white mb-4">
+                                  Detected Structural Issues
+                                </h5>
+                                {result.formattingAudit.issues.map((issue, i) => (
+                                  <div
+                                    key={i}
+                                    className="flex items-center gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/5"
+                                  >
+                                    <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shrink-0">
+                                      <FaExclamationTriangle size={12} />
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-300">
+                                      {issue}
+                                    </span>
+                                  </div>
+                                ))}
+                                {result.formattingAudit.issues.length === 0 && (
+                                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                                    <FaCheckCircle className="text-emerald-500" />
+                                    <span className="text-xs font-bold text-emerald-400">
+                                      Zero structural issues detected.
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* RE-ANALYZE BUTTON */}
+                      <div className="pt-6 flex justify-center">
+                        <button
+                          onClick={() => {
+                            setResult(null);
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-white hover:border-sky-500/30 transition-all flex items-center gap-2"
+                        >
+                          <RefreshCw size={14} /> Reset Analysis Module
+                        </button>
+                      </div>
+                    </motion.div>
+                  ) : isAnalyzing ? (
+                    <div className="h-full flex flex-col items-center justify-center py-20 px-8">
+                      <div className="relative mb-12">
+                        <motion.div
+                          animate={{
+                            rotate: 360,
+                          }}
+                          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                          className="w-40 h-40 rounded-full border-2 border-dashed border-sky-500/30"
+                        />
+                        <motion.div
+                          animate={{
+                            scale: [1, 1.2, 1],
+                          }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="absolute inset-0 flex items-center justify-center"
+                        >
+                          <div className="w-16 h-16 rounded-2xl bg-sky-500/20 shadow-[0_0_30px_rgba(14,165,233,0.3)] flex items-center justify-center">
+                            <Zap className="text-sky-400" size={32} />
+                          </div>
+                        </motion.div>
+                      </div>
+                      <h3 className="text-2xl font-black mb-3 uppercase tracking-tighter">
+                        Neural Decoding...
+                      </h3>
+                      <div className="space-y-2 text-center">
+                        <p className="text-slate-500 text-xs font-black uppercase tracking-widest animate-pulse">
+                          Scanning semantic structures...
+                        </p>
+                        <p className="text-slate-600 text-[10px] font-medium max-w-xs mx-auto">
+                          Executing semantic overlap algorithm and formatting integrity audit with
+                          Gemini-2.0 protocols.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center py-20 px-8 text-center bg-slate-900/40 border border-dashed border-white/10 rounded-[3rem]">
+                      <div className="w-20 h-20 rounded-3xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-800 mb-8">
+                        <Layout size={40} />
+                      </div>
+                      <h3 className="text-xl font-black mb-2 text-slate-400 uppercase tracking-tight">
+                        Intelligence Terminal
+                      </h3>
+                      <p className="text-slate-500 text-xs max-w-xs font-medium leading-relaxed">
+                        Initialize the system by uploading your resume and target Job Description to
+                        receive a comprehensive neural compatibility report.
+                      </p>
+
+                      <div className="mt-12 flex gap-4">
+                        <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-[9px] font-black uppercase tracking-widest text-slate-600">
+                          Keyword Mapping
+                        </div>
+                        <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-[9px] font-black uppercase tracking-widest text-slate-600">
+                          Format Audit
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
-          </div>
-
-          {/* RIGHT – JOB DESCRIPTION */}
-          <div className="bg-slate-900/60 p-6 rounded-xl border border-sky-500/20 hover:border-sky-500 transition-all duration-300">
-            <h2 className="text-2xl font-semibold text-white mb-4">Job Description</h2>
-            <textarea
-              rows="8"
-              placeholder="Paste the job description here..."
-              className="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 focus:border-sky-500 outline-none text-white resize-none"
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* 🔹 ANALYZE BUTTON */}
-        <div className="mt-12 text-center">
-          <button
-            onClick={calculateATS}
-            disabled={isAnalyzing || isTagsProcessing || !resumeText}
-            className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-300 ${(isAnalyzing || isTagsProcessing || !resumeText) ? "bg-slate-600 cursor-not-allowed opacity-50" : "bg-sky-500 hover:bg-sky-600 hover:scale-105"
-              }`}
-          >
-            {isAnalyzing ? "Analyzing..." : "Analyze ATS Score"}
-          </button>
-          {!resumeText && fileName && !isTagsProcessing && !processingError && (
-            <p className="text-xs text-yellow-500 mt-2">Resume text empty. Please try re-uploading.</p>
           )}
         </div>
 
-        {/* 🔹 RESULT SECTION */}
-        {analysisResult && (
-          <div className="mt-20 bg-slate-900/60 p-8 rounded-xl border border-sky-500/20 hover:border-sky-500 transition-all animate-fade-in">
-            <h2 className="text-2xl font-semibold text-white mb-6 text-center">ATS Analysis Result</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-              {/* SCORE */}
-              <div className="bg-slate-800 p-6 rounded-xl text-center hover:scale-105 transition-all">
-                <p className="text-sky-300 text-sm">ATS Score</p>
-                <div className="relative inline-flex items-center justify-center mt-4">
-                  <svg className="w-32 h-32 transform -rotate-90">
-                    <circle cx="64" cy="64" r="56" stroke="#1e293b" strokeWidth="12" fill="transparent" />
-                    <circle
-                      cx="64" cy="64" r="56"
-                      stroke={analysisResult.score >= 70 ? "#22c55e" : analysisResult.score >= 40 ? "#eab308" : "#ef4444"}
-                      strokeWidth="12"
-                      fill="transparent"
-                      strokeDasharray={351.86}
-                      strokeDashoffset={351.86 - (351.86 * analysisResult.score) / 100}
-                      className="transition-all duration-1000 ease-out"
-                    />
-                  </svg>
-                  <span className="absolute text-3xl font-bold text-white">{analysisResult.score}%</span>
-                </div>
-              </div>
-
-              {/* MATCHED SKILLS */}
-              <div className="bg-slate-800 p-6 rounded-xl hover:scale-105 transition-all">
-                <h4 className="text-green-400 font-semibold mb-3 border-b border-slate-700 pb-2">Matched Keywords</h4>
-                <ul className="text-sky-200 text-sm space-y-1 max-h-60 overflow-y-auto custom-scrollbar">
-                  {analysisResult.matched.length > 0 ? (
-                    analysisResult.matched.map((kw, i) => <li key={i} className="flex items-center gap-2"><span className="text-green-500">✔</span> {kw}</li>)
-                  ) : (
-                    <li className="text-slate-500 italic">No matches found</li>
-                  )}
-                </ul>
-              </div>
-
-              {/* MISSING SKILLS */}
-              <div className="bg-slate-800 p-6 rounded-xl hover:scale-105 transition-all">
-                <h4 className="text-red-400 font-semibold mb-3 border-b border-slate-700 pb-2">Missing Keywords</h4>
-                <ul className="text-sky-200 text-sm space-y-1 max-h-60 overflow-y-auto custom-scrollbar">
-                  {analysisResult.missing.length > 0 ? (
-                    analysisResult.missing.map((kw, i) => <li key={i} className="flex items-center gap-2"><span className="text-red-500">✖</span> {kw}</li>)
-                  ) : (
-                    <li className="text-green-500 italic">No missing keywords!</li>
-                  )}
-                </ul>
-              </div>
-
-            </div>
-          </div>
-        )}
-
-        {/* 🔹 TIPS SECTION */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-          {["Use job-specific keywords", "Avoid images & tables in resume", "Use simple fonts & headings"].map((tip, i) => (
-            <div key={i} className="bg-slate-900/60 p-5 rounded-xl border border-sky-500/20 hover:border-sky-500 transition">
-              <p className="text-sky-300 text-sm">💡 {tip}</p>
-            </div>
-          ))}
-        </div>
-
+        <div className="h-32"></div>
       </div>
     </MainLayout>
   );

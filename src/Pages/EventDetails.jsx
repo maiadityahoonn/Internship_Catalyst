@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import {
     Calendar, MapPin, Globe, Users, Trophy, Gift,
     Link as LinkIcon, Instagram, Linkedin, MessageCircle,
     Share2, ArrowLeft, ExternalLink, Info, CheckCircle,
-    Phone, Mail, User, Clock, AlertCircle, Sparkles
+    Phone, Mail, User, Clock, AlertCircle, Sparkles, DollarSign
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getDirectDriveLink } from '../utils/imageUtils';
 
 export default function EventDetails() {
     const { id } = useParams();
@@ -17,18 +18,6 @@ export default function EventDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const getDirectPosterURL = (url) => {
-        if (!url) return '';
-        // Handle Google Drive links
-        if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
-            const idMatch = url.match(/\/d\/([^/]+)/) || url.match(/id=([^&]+)/);
-            if (idMatch && idMatch[1]) {
-                // Return direct viewing link
-                return `https://docs.google.com/uc?export=view&id=${idMatch[1]}`;
-            }
-        }
-        return url;
-    };
 
     const fetchEvent = async () => {
         if (!id) {
@@ -131,9 +120,9 @@ export default function EventDetails() {
                     <div className="lg:col-span-8 space-y-12">
                         {/* Header Section */}
                         <div className="relative group">
-                            <div className="relative h-[450px] w-full rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl">
+                            <div className="relative h-[300px] md:h-[450px] w-full rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl">
                                 {event.posterLink ? (
-                                    <img src={getDirectPosterURL(event.posterLink)} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
+                                    <img src={getDirectDriveLink(event.posterLink)} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
                                 ) : (
                                     <div className="w-full h-full bg-gradient-to-br from-slate-900 via-indigo-950 to-black flex items-center justify-center">
                                         <Calendar className="w-20 h-20 text-white/10" />
@@ -141,8 +130,8 @@ export default function EventDetails() {
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent"></div>
 
-                                <div className="absolute bottom-10 left-10 right-10">
-                                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                                <div className="absolute bottom-6 left-6 right-6 md:bottom-10 md:left-10 md:right-10">
+                                    <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
                                         <span className="px-5 py-1.5 bg-sky-500 text-black text-[10px] font-black tracking-widest uppercase rounded-full">
                                             {event.category}
                                         </span>
@@ -155,18 +144,18 @@ export default function EventDetails() {
                                             </span>
                                         )}
                                     </div>
-                                    <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight drop-shadow-2xl">{event.title}</h1>
+                                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-black mb-4 md:mb-6 leading-tight drop-shadow-2xl">{event.title}</h1>
                                 </div>
                             </div>
                         </div>
 
                         {/* Description Section */}
-                        <section className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-xl">
+                        <section className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-6 sm:p-12 shadow-xl">
                             <h3 className="text-xl font-black text-white mb-6 flex items-center gap-3">
                                 <span className="w-1.5 h-8 bg-sky-500 rounded-full"></span>
                                 About the Event
                             </h3>
-                            <p className="text-slate-400 text-lg leading-relaxed whitespace-pre-wrap font-medium">
+                            <p className="text-slate-400 text-base sm:text-lg leading-relaxed whitespace-pre-wrap font-medium">
                                 {event.description}
                             </p>
                         </section>
@@ -232,25 +221,25 @@ export default function EventDetails() {
                         {(event.prizes || (event.perks && event.perks.length > 0)) && (
                             <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {event.prizes && (
-                                    <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-xl">
+                                    <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-6 sm:p-10 shadow-xl">
                                         <h3 className="text-lg font-black text-white mb-6 flex items-center gap-3">
                                             <Trophy className="text-yellow-400" size={20} />
                                             Victory Rewards
                                         </h3>
-                                        <p className="text-slate-400 leading-relaxed font-medium bg-white/5 p-4 rounded-2xl border border-white/5">
+                                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed font-medium bg-white/5 p-4 rounded-2xl border border-white/5">
                                             {event.prizes}
                                         </p>
                                     </div>
                                 )}
                                 {event.perks && event.perks.length > 0 && (
-                                    <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-xl">
+                                    <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-6 sm:p-10 shadow-xl">
                                         <h3 className="text-lg font-black text-white mb-6 flex items-center gap-3">
                                             <Gift className="text-rose-400" size={20} />
                                             Participation Perks
                                         </h3>
-                                        <div className="flex flex-wrap gap-3">
+                                        <div className="flex flex-wrap gap-2 sm:gap-3">
                                             {event.perks.map((perk, i) => (
-                                                <span key={i} className="px-4 py-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-xs font-bold">
+                                                <span key={i} className="px-4 py-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-[10px] sm:text-xs font-bold font-sans">
                                                     {perk}
                                                 </span>
                                             ))}
@@ -347,14 +336,37 @@ export default function EventDetails() {
                             )}
 
                             <div className="grid grid-cols-2 gap-4 mb-6">
-                                <a
-                                    href={event.registrationLink}
-                                    target="_blank"
-                                    rel="noreferrer"
+                                <button
+                                    onClick={async () => {
+                                        if (!auth.currentUser) {
+                                            alert("Please login to register for this event.");
+                                            navigate('/auth');
+                                            return;
+                                        }
+
+                                        try {
+                                            // Save interaction to Firestore
+                                            await addDoc(collection(db, 'user_interactions'), {
+                                                userId: auth.currentUser.uid,
+                                                userEmail: auth.currentUser.email,
+                                                type: 'event',
+                                                itemId: event.id,
+                                                itemTitle: event.title,
+                                                itemLocation: event.mode || 'Online',
+                                                itemLogo: event.posterLink, // Use poster as representation
+                                                timestamp: serverTimestamp()
+                                            });
+
+                                            window.open(event.registrationLink, '_blank');
+                                        } catch (err) {
+                                            console.error("Error saving interaction:", err);
+                                            window.open(event.registrationLink, '_blank');
+                                        }
+                                    }}
                                     className="col-span-1 py-4 bg-gradient-to-r from-sky-400 to-indigo-600 text-white font-black text-xs rounded-2xl hover:shadow-[0_0_30px_rgba(56,189,248,0.4)] transition-all hover:scale-[1.05] active:scale-95 flex items-center justify-center gap-2"
                                 >
                                     Register <ExternalLink size={16} />
-                                </a>
+                                </button>
                                 <button
                                     onClick={handleShare}
                                     className="col-span-1 py-4 bg-white/5 hover:bg-white text-white hover:text-black border border-white/10 rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2"

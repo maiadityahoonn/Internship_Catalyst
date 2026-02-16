@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -55,7 +56,25 @@ export default function Auth() {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Sync with Firestore
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          role: 'user',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      }
+
       alert('Welcome Back via Google!');
       navigate('/');
     } catch (error) {
@@ -82,13 +101,25 @@ export default function Auth() {
         }
 
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
         // Update Profile with Name
         if (name) {
-          await updateProfile(userCredential.user, {
+          await updateProfile(user, {
             displayName: name
           });
         }
+
+        // Sync with Firestore
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          email: user.email,
+          displayName: name || user.displayName,
+          photoURL: user.photoURL,
+          role: 'user',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
 
         alert('Account created successfully!');
         navigate('/');

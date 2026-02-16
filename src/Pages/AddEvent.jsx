@@ -22,6 +22,7 @@ import {
     Target,
     Phone
 } from 'lucide-react';
+import { getDirectDriveLink } from '../utils/imageUtils';
 
 export default function AddEvent() {
     const [step, setStep] = useState(1);
@@ -202,17 +203,17 @@ export default function AddEvent() {
                     >
                         <Sparkles size={14} /> Creator Studio
                     </motion.div>
-                    <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tight">
+                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-black mb-6 tracking-tight px-4">
                         <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Host an </span>
                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400">Experience</span>
                     </h1>
                 </div>
 
                 {/* Progress Stepper */}
-                <div className="flex items-center justify-between mb-12 px-2 max-w-2xl mx-auto relative">
-                    <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/5 -translate-y-1/2 -z-10"></div>
+                <div className="flex items-center justify-between mb-12 px-2 max-w-2xl mx-auto relative overflow-x-auto pb-4 sm:pb-0 scrollbar-hide">
+                    <div className="absolute top-[20px] left-0 w-full h-0.5 bg-white/5 -z-10"></div>
                     {steps.map((s) => (
-                        <div key={s.id} className="flex flex-col items-center gap-3">
+                        <div key={s.id} className="flex flex-col items-center gap-3 shrink-0 px-2 sm:px-0">
                             <motion.div
                                 animate={{
                                     scale: step === s.id ? 1.2 : 1,
@@ -223,7 +224,7 @@ export default function AddEvent() {
                             >
                                 {step > s.id ? <CheckCircle size={18} /> : s.icon}
                             </motion.div>
-                            <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors duration-500 ${step >= s.id ? 'text-white' : 'text-slate-600'}`}>
+                            <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider transition-colors duration-500 ${step >= s.id ? 'text-white' : 'text-slate-600'}`}>
                                 {s.title}
                             </span>
                         </div>
@@ -243,7 +244,7 @@ export default function AddEvent() {
                     )}
 
                     <motion.div
-                        className="bg-[#0f172a]/50 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden"
+                        className="bg-[#0f172a]/50 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-6 sm:p-8 md:p-12 shadow-2xl relative overflow-hidden"
                     >
                         <form onSubmit={handleSubmit}>
                             <AnimatePresence mode="wait">
@@ -454,6 +455,36 @@ export default function AddEvent() {
                                                     className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:border-sky-500 focus:outline-none transition-all placeholder:text-slate-600"
                                                 />
                                                 <p className="text-[10px] text-slate-500 mt-2 ml-1">Provide a link to the event poster (JPG, PNG, Google Drive, etc.)</p>
+
+                                                {/* Poster Preview [NEW] */}
+                                                {formData.posterLink && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, scale: 0.95 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        className="mt-6 relative group/preview"
+                                                    >
+                                                        <div className="absolute -top-3 left-4 px-3 py-1 bg-sky-500 text-black text-[10px] font-black uppercase tracking-widest rounded-full z-10 shadow-lg">
+                                                            Poster Preview
+                                                        </div>
+                                                        <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 bg-white/5">
+                                                            <img
+                                                                src={getDirectDriveLink(formData.posterLink)}
+                                                                alt="Poster Preview"
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => {
+                                                                    e.target.style.display = 'none';
+                                                                    e.target.nextSibling.style.display = 'flex';
+                                                                }}
+                                                            />
+                                                            <div className="absolute inset-0 hidden items-center justify-center flex-col gap-3 bg-slate-900/50 backdrop-blur-sm">
+                                                                <AlertCircle className="text-rose-400 w-10 h-10" />
+                                                                <p className="text-xs font-bold text-slate-300 px-10 text-center">
+                                                                    Unable to load image. Please verify the link is a direct image URL or a shared Google Drive file.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
                                             </div>
                                         </div>
                                     </motion.div>
