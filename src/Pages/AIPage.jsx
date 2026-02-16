@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import { isToolPurchased, purchaseTool, PRICING } from '../utils/aiMonetization';
+import { isToolPurchased, recordPurchase, getActiveTools, PRICING } from '../utils/aiMonetization';
 
 export default function AIPage() {
     const navigate = useNavigate();
@@ -36,61 +36,71 @@ export default function AIPage() {
     const [selectedTool, setSelectedTool] = useState(null); // For Purchase Modal
     const [purchasedTools, setPurchasedTools] = useState([]);
 
+
     useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+
         if (auth.currentUser) {
-            const user = auth.currentUser;
-            const statuses = aiTools.map(tool => ({
-                id: tool.id,
-                isOwned: isToolPurchased(user.uid, tool.id)
-            }));
-            setPurchasedTools(statuses);
+            checkAccess();
         }
-    }, []);
+    }, [auth.currentUser]);
+
+    const checkAccess = async () => {
+        const activeTools = await getActiveTools(auth.currentUser.uid);
+        setPurchasedTools(activeTools);
+    };
 
     const aiTools = [
         {
             id: "ai-resume",
-            title: "AI Resume Templates",
-            description: "Templates that pass company filters and look professional.",
+            title: "AI Resume Builder",
+            description: "Easily make a professional resume that gets you hired.",
             icon: <Bot className="text-sky-400" size={24} />,
             path: "/ai-resume-templates",
-            features: ["Fast Pass", "Recruiter Approved", "Multi-layout"],
+            features: ["Easy to Use", "Fast Results", "Job Ready"],
             color: "from-sky-500/20 to-blue-500/20",
             accent: "sky",
-            price: 0
+            price: PRICING['ai-resume'].sale,
+            actualPrice: PRICING['ai-resume'].actual
         },
         {
             id: "ats-checker",
             title: "ATS Score Checker",
-            description: "Full check of your resume logic and design.",
+            description: "Check if your resume can pass company software filters.",
             icon: <Target className="text-indigo-400" size={24} />,
             path: "/ats-score-checker",
-            features: ["Match Check", "Format Check", "Resume Fixes"],
+            features: ["Score Card", "Fix Mistakes", "Keyword Tips"],
             color: "from-indigo-500/20 to-purple-500/20",
             accent: "indigo",
-            price: PRICING['ats-checker']
+            price: PRICING['ats-checker'].sale,
+            actualPrice: PRICING['ats-checker'].actual
         },
         {
             id: "skill-gap",
             title: "Skill Gap Analyzer",
-            description: "Your own study plan and skill matching for any job.",
+            description: "Find out what skills you need to learn for your dream job.",
             icon: <Lightbulb className="text-purple-400" size={24} />,
             path: "/skill-gap-analyzer",
-            features: ["Skill Match", "Study Plan", "Project Ideas"],
+            features: ["Skill Check", "Learn Plan", "Job Goals"],
             color: "from-purple-500/20 to-pink-500/20",
             accent: "purple",
-            price: PRICING['skill-gap']
+            price: PRICING['skill-gap'].sale,
+            actualPrice: PRICING['skill-gap'].actual
         },
         {
             id: "cover-letter",
-            title: "AI Cover Letter Generator",
-            description: "Great matching letters for better results in your job search.",
+            title: "AI Cover Letter",
+            description: "Write perfect application letters to impress companies.",
             icon: <Zap className="text-emerald-400" size={24} />,
             path: "/cover-letter-ai",
-            features: ["Job Match", "Tone Change", "Get Ahead"],
+            features: ["Match Job", "Pro Tone", "Save Time"],
             color: "from-emerald-500/20 to-teal-500/20",
             accent: "emerald",
-            price: PRICING['cover-letter']
+            price: PRICING['cover-letter'].sale,
+            actualPrice: PRICING['cover-letter'].actual
         }
     ];
 
@@ -101,72 +111,88 @@ export default function AIPage() {
             return;
         }
 
-        const isOwned = isToolPurchased(auth.currentUser.uid, tool.id);
-        if (isOwned || tool.price === 0) {
+        const owns = isOwned(tool.id);
+        if (owns || tool.price === 0) {
             navigate(tool.path);
         } else {
             setSelectedTool(tool);
         }
     };
 
-    const handleConfirmPurchase = () => {
-        if (selectedTool && auth.currentUser) {
-            purchaseTool(auth.currentUser.uid, selectedTool.id, selectedTool.title, selectedTool.price);
+    const handleRazorpayPayment = async (tool) => {
+        const options = {
+            key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Loaded from .env
+            amount: tool.price * 100, // Amount in paise
+            currency: "INR",
+            name: "Internship Catalyst",
+            description: `3 Month Access to ${tool.title}`,
+            image: "https://internshipcatalyst.com/logo-og.png",
+            handler: async (response) => {
+                const success = await recordPurchase(
+                    auth.currentUser.uid,
+                    tool.id,
+                    response.razorpay_payment_id
+                );
 
-            // Refresh local state
-            const updated = aiTools.map(tool => ({
-                id: tool.id,
-                isOwned: isToolPurchased(auth.currentUser.uid, tool.id)
-            }));
-            setPurchasedTools(updated);
+                if (success) {
+                    alert(`${tool.title} Unlocked Successfully!`);
+                    checkAccess();
+                    setSelectedTool(null);
+                    navigate(tool.path);
+                } else {
+                    alert("Something went wrong. Please contact support.");
+                }
+            },
+            prefill: {
+                name: auth.currentUser.displayName || "",
+                email: auth.currentUser.email || ""
+            },
+            theme: {
+                color: "#0ea5e9"
+            }
+        };
 
-            const toolId = selectedTool.id;
-            const toolUrl = selectedTool.path;
-
-            setSelectedTool(null);
-            alert(`Purchase successful! Access to ${selectedTool.title} unlocked.`);
-            navigate(toolUrl);
-        }
+        const rzp = new window.Razorpay(options);
+        rzp.open();
     };
 
     const isOwned = (toolId) => {
-        const status = purchasedTools.find(t => t.id === toolId);
-        return status ? status.isOwned : false;
+        return purchasedTools.includes(toolId);
     };
 
     const workflowSteps = [
-        { icon: <Globe size={24} />, title: "Connect", desc: "Share your details or upload your resume." },
-        { icon: <Cpu size={24} />, title: "Check", desc: "Our AI checks your data against top companies." },
-        { icon: <AnimatePresence><ZapIcon size={24} /></AnimatePresence>, title: "Fix", desc: "Make your resume better with AI." },
-        { icon: <CheckCircle2 size={24} />, title: "Finish", desc: "Download your files and apply for jobs." }
+        { icon: <Globe size={24} />, title: "Share", desc: "Upload your resume or share your details." },
+        { icon: <Cpu size={24} />, title: "Process", desc: "Our AI checks your data against top companies." },
+        { icon: <AnimatePresence><ZapIcon size={24} /></AnimatePresence>, title: "Improve", desc: "AI helps you fix mistakes and look better." },
+        { icon: <CheckCircle2 size={24} />, title: "Download", desc: "Get your files ready to apply for jobs." }
     ];
 
     const faqs = [
         {
-            q: "How accurate is the ATS Score Checker?",
-            a: "Our algorithm is trained on thousands of successfully processed resumes and mimics the logic of leading ATS software like Workday, Greenhouse, and Lever with over 95% accuracy."
+            q: "How good is the ATS Score Checker?",
+            a: "It is very accurate. It works just like the software big companies use to scan resumes. It helped thousands of students already."
         },
         {
-            q: "Is my data safe and private?",
-            a: "Absolutely. We encrypt all uploads and do not share your personal information with third parties. Your data is used exclusively to power the AI analysis for your account."
+            q: "Is my personal data safe?",
+            a: "Yes, 100%. We keep your files locked and private. We never share your data with anyone else."
         },
         {
-            q: "Can the AI really help me get an internship?",
-            a: "Yes! By matching your skills with job descriptions and optimizing keywords, we've seen users get invited to 3x more interviews compared to traditional manual applications."
+            q: "Will this really help me get a job?",
+            a: "Yes! Students using our AI tools get 3 times more interview calls because their resumes match what companies want."
         },
         {
-            q: "How does the Skill Gap Analyzer work?",
-            a: "It compares your current skill set against the 'ideal' profile for your target role using real-time job market data, identifying specific technologies and certifications you need."
+            q: "How does the Skill Gap Analyzer help?",
+            a: "It tells you exactly what to learn to get the job you want. No more guessing—just a clear plan to follow."
         }
     ];
 
     const valueProps = [
-        { icon: <ShieldCheck className="text-sky-400" />, title: "Data Integrity", desc: "Enterprise-grade encryption for all your professional documents." },
-        { icon: <ZapIcon className="text-amber-400" />, title: "Real-time Speed", desc: "Get comprehensive analysis and documents in under 10 seconds." },
-        { icon: <BrainCircuit className="text-purple-400" />, title: "Deep Insights", desc: "Beyond simple keywords—we analyze the semantic meaning of your work." },
-        { icon: <Database className="text-indigo-400" />, title: "Market Driven", desc: "Updated daily with trends from 10,000+ active job postings." },
-        { icon: <Search className="text-emerald-400" />, title: "ATS Knowledge", desc: "Deep integration with the logic of all major recruitment systems." },
-        { icon: <Lock className="text-rose-400" />, title: "Private Compute", desc: "Your career roadmap is yours alone. No public profiles unless you choose." }
+        { icon: <ShieldCheck className="text-sky-400" />, title: "Locked & Safe", desc: "Your files are kept very safe with high-level security." },
+        { icon: <ZapIcon className="text-amber-400" />, title: "Super Fast", desc: "Get your resume analysis and results in just 10 seconds." },
+        { icon: <BrainCircuit className="text-purple-400" />, title: "Deep Check", desc: "AI checks your work deeply, not just simple words." },
+        { icon: <Database className="text-indigo-400" />, title: "Market Ready", desc: "Updated every day with new jobs from top companies." },
+        { icon: <Search className="text-emerald-400" />, title: "ATS Friendly", desc: "Build resumes that pass the company’s scanning software." },
+        { icon: <Lock className="text-rose-400" />, title: "Private Plan", desc: "Your career plan is only for you. No one can see it." }
     ];
 
     return (
@@ -204,7 +230,7 @@ export default function AIPage() {
                         </motion.h1>
 
                         <p className="text-slate-400 text-base md:text-lg lg:text-xl max-w-2xl mx-auto font-light leading-relaxed mb-12 px-4">
-                            Get powerful AI career tools. Premium AI tools to help students get hired faster.
+                            Get powerful AI tools to help you get hired faster. Easy to use, recruiter-approved, and made for students.
                         </p>
                     </div>
 
@@ -240,9 +266,12 @@ export default function AIPage() {
                                                     <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Unlocked</span>
                                                 </div>
                                             ) : (
-                                                <div className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center gap-1.5">
-                                                    <Lock size={10} className="text-amber-500" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">₹{tool.price}</span>
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-[10px] font-bold text-slate-500 line-through">₹{tool.actualPrice}</span>
+                                                    <div className="px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 flex items-center gap-1.5 mt-1">
+                                                        <ZapIcon size={10} className="text-sky-400" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-sky-400">₹{tool.price}</span>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -254,6 +283,12 @@ export default function AIPage() {
                                         <p className="text-slate-500 text-xs font-medium leading-relaxed mb-6">
                                             {tool.description}
                                         </p>
+
+                                        <div className="py-2 mb-4 border-y border-white/5">
+                                            <p className="text-[9px] font-black uppercase tracking-tighter text-sky-500/70">
+                                                90 Days Access Protocol
+                                            </p>
+                                        </div>
 
                                         <div className="space-y-4 mt-auto">
                                             <div className="flex flex-wrap gap-2">
@@ -413,17 +448,20 @@ export default function AIPage() {
                                     <div className="space-y-4 mb-8">
                                         <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/5">
                                             <div className="flex justify-between items-center mb-3">
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Access Tier</span>
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400">Lifetime Pro</span>
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Access Type</span>
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-sky-400">3 Month Pro</span>
                                             </div>
-                                            <div className="flex items-baseline gap-2">
-                                                <span className="text-4xl font-black text-white tracking-tighter">₹{selectedTool.price}</span>
-                                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">One-time payment</span>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs font-bold text-slate-500 line-through">₹{selectedTool.actualPrice}</span>
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-4xl font-black text-white tracking-tighter">₹{selectedTool.price}</span>
+                                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Limited Period Offer</span>
+                                                </div>
                                             </div>
                                         </div>
 
                                         <div className="space-y-3">
-                                            <h4 className="text-[9px] font-black uppercase tracking-widest text-white">Included in this Protocol</h4>
+                                            <h4 className="text-[9px] font-black uppercase tracking-widest text-white">Why use this Tool?</h4>
                                             {selectedTool.features.map((feature, i) => (
                                                 <div key={i} className="flex items-center gap-3">
                                                     <div className="w-4 h-4 rounded-full bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
@@ -437,13 +475,13 @@ export default function AIPage() {
 
                                     <div className="space-y-4">
                                         <button
-                                            onClick={handleConfirmPurchase}
+                                            onClick={() => handleRazorpayPayment(selectedTool)}
                                             className="w-full py-4 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-sky-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                                         >
-                                            <CreditCard size={14} /> Buy Now
+                                            <CreditCard size={14} /> Pay & Unlock Now
                                         </button>
                                         <p className="text-[9px] text-center text-slate-600 font-bold uppercase tracking-widest leading-loose">
-                                            By confirming, you agree to get lifetime access <br /> to the {selectedTool.title} system.
+                                            By paying, you get 90 days full access <br /> to the {selectedTool.title} system.
                                         </p>
                                     </div>
                                 </div>

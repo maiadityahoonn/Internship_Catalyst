@@ -15,7 +15,7 @@ export default function Resources() {
       icon: <FaFileAlt className="text-blue-400" size={28} />,
       title: "AI Resume Builder",
       description: "Create professional, ATS-optimized resumes in minutes with AI-powered assistance.",
-      path: "/ai-cv-builder",
+      path: "/ai-resume-templates",
       color: "from-blue-600 to-blue-400",
       features: ["AI-powered templates", "ATS optimization", "Real-time preview"]
     },

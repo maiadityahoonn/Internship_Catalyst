@@ -189,7 +189,7 @@ export default function ATSScoreChecker() {
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black mb-3 uppercase tracking-tight text-white">Protocol Restricted</h2>
                 <p className="text-slate-400 text-xs sm:text-sm max-w-sm mx-auto mb-8 font-medium leading-relaxed">
-                  The ATS Score Intelligence system is an elite protocol. Unlock full access to audit your resume health for just <span className="text-white font-black">₹{PRICING['ats-checker']}</span>.
+                  The ATS Score Intelligence system is an elite protocol. Unlock full access to audit your resume health for just <span className="text-white font-black">₹{PRICING['ats-checker'].sale}</span>.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <button

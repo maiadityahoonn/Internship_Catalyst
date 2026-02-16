@@ -1,79 +1,153 @@
+import { db } from '../firebase';
+import {
+    doc,
+    getDoc,
+    setDoc,
+    collection,
+    addDoc,
+    serverTimestamp,
+    query,
+    where,
+    getDocs
+} from 'firebase/firestore';
+
 /**
  * AI Monetization Utility
- * Handles simulated purchases and ownership checks using localStorage.
+ * Handles Firestore-based purchases and 3-month access protocol.
  */
 
-const PURCHASES_KEY = 'ic_ai_purchases';
+const ACCESS_DURATION_DAYS = 90;
 
-const getStoredPurchases = () => {
-    try {
-        const data = localStorage.getItem(PURCHASES_KEY);
-        return data ? JSON.parse(data) : {};
-    } catch (e) {
-        console.error("Failed to parse purchases:", e);
-        return {};
-    }
-};
-
-const savePurchases = (purchases) => {
-    localStorage.setItem(PURCHASES_KEY, JSON.stringify(purchases));
+export const PRICING = {
+    'ats-checker': { actual: 699, sale: 149 },
+    'skill-gap': { actual: 499, sale: 49 },
+    'cover-letter': { actual: 499, sale: 79 },
+    'ai-resume': { actual: 0, sale: 0 } // Always free
 };
 
 /**
- * Checks if a specific tool is purchased.
+ * Checks if a specific tool is purchased and still active.
  * @param {string} userId - Current user ID
  * @param {string} toolId - Tool identifier
  */
-export const isToolPurchased = (userId, toolId) => {
+export const isToolPurchased = async (userId, toolId) => {
     if (!userId) return false;
-    // AI Resume tool is currently free/unlocked
     if (toolId === 'ai-resume') return true;
 
-    const purchases = getStoredPurchases();
-    return !!(purchases[userId] && purchases[userId][toolId]);
+    try {
+        const purchaseRef = doc(db, 'users', userId, 'ai_purchases', toolId);
+        const purchaseSnap = await getDoc(purchaseRef);
+
+        if (purchaseSnap.exists()) {
+            const data = purchaseSnap.data();
+            const expiresAt = data.expiresAt?.toDate();
+
+            // If expired, access revoked
+            if (expiresAt && expiresAt < new Date()) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error("Error checking tool access:", error);
+        return false;
+    }
 };
 
 /**
- * Simulates a tool purchase.
+ * Records a successful purchase in Firestore.
  * @param {string} userId 
  * @param {string} toolId 
- * @param {string} toolName 
- * @param {number} price 
+ * @param {string} paymentId 
  */
-export const purchaseTool = (userId, toolId, toolName, price) => {
+export const recordPurchase = async (userId, toolId, paymentId) => {
     if (!userId) return false;
 
-    const purchases = getStoredPurchases();
-    if (!purchases[userId]) purchases[userId] = {};
+    try {
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + ACCESS_DURATION_DAYS);
 
-    purchases[userId][toolId] = {
-        purchasedAt: new Date().toISOString(),
-        name: toolName,
-        price: price,
-        transactionId: 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase()
-    };
+        // Record in User's Private Collection
+        const purchaseRef = doc(db, 'users', userId, 'ai_purchases', toolId);
+        await setDoc(purchaseRef, {
+            toolId,
+            paymentId,
+            purchasedAt: serverTimestamp(),
+            expiresAt: expiresAt,
+            status: 'active'
+        });
 
-    savePurchases(purchases);
-    return true;
+        // Record in Global Payments Log (for Admin)
+        await addDoc(collection(db, 'payments'), {
+            userId,
+            toolId,
+            paymentId,
+            amount: PRICING[toolId]?.sale || 0,
+            timestamp: serverTimestamp(),
+            type: 'ai_tool'
+        });
+
+        return true;
+    } catch (error) {
+        console.error("Error recording purchase:", error);
+        return false;
+    }
 };
 
 /**
- * Gets the purchase history for a user.
- * @param {string} userId 
+ * Gets active purchases for a user.
  */
-export const getPurchaseHistory = (userId) => {
+export const getActiveTools = async (userId) => {
     if (!userId) return [];
-    const purchases = getStoredPurchases();
-    const userPurchases = purchases[userId] || {};
 
-    return Object.keys(userPurchases).map(id => ({
-        id,
-        ...userPurchases[id]
-    })).sort((a, b) => new Date(b.purchasedAt) - new Date(a.purchasedAt));
+    try {
+        const purchasesRef = collection(db, 'users', userId, 'ai_purchases');
+        const querySnap = await getDocs(purchasesRef);
+
+        const tools = [];
+        querySnap.forEach(doc => {
+            const data = doc.data();
+            const expiresAt = data.expiresAt?.toDate();
+            if (!expiresAt || expiresAt > new Date()) {
+                tools.push(data.toolId);
+            }
+        });
+
+        return tools;
+    } catch (error) {
+        console.error("Error getting active tools:", error);
+        return [];
+    }
 };
 
-export const PRICING = {
-    'ats-checker': 99,
-    'skill-gap': 149,
-    'cover-letter': 79
+/**
+ * Gets the purchase history for a user from Firestore.
+ * @param {string} userId 
+ */
+export const getPurchaseHistory = async (userId) => {
+    if (!userId) return [];
+
+    try {
+        const purchasesRef = collection(db, 'users', userId, 'ai_purchases');
+        const querySnap = await getDocs(purchasesRef);
+
+        const history = [];
+        querySnap.forEach(doc => {
+            history.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+
+        // Sort by date (newest first)
+        return history.sort((a, b) => {
+            const dateA = a.purchasedAt?.toDate() || 0;
+            const dateB = b.purchasedAt?.toDate() || 0;
+            return dateB - dateA;
+        });
+    } catch (error) {
+        console.error("Error getting purchase history:", error);
+        return [];
+    }
 };

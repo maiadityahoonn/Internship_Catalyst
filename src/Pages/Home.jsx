@@ -190,10 +190,11 @@ function ParticleSphere() {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 500) {
-        setCameraZ(16);
-      } else if (window.innerWidth < 800) {
-        setCameraZ(12);
+      const width = window.innerWidth;
+      if (width < 500) {
+        setCameraZ(7.5); // Much closer/larger for mobile
+      } else if (width < 800) {
+        setCameraZ(11);
       } else {
         setCameraZ(8);
       }
@@ -236,10 +237,10 @@ export default function Home({ defaultConfig }) {
 
     const animateStats = () => {
       const targetStats = {
-        jobs: 1250,
-        internships: 780,
-        events: 156,
-        users: 5000
+        jobs: 200,
+        internships: 100,
+        events: 56,
+        users: 1000
       };
 
       const duration = 1500;
@@ -292,15 +293,15 @@ export default function Home({ defaultConfig }) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9 }}
-            className="text-center lg:text-left z-10"
+            className="text-center lg:text-left z-10 w-full"
           >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight bg-gradient-to-r from-sky-400 via-blue-500 to-white bg-clip-text text-transparent mb-6 lg:mb-8 pb-2">
+            <h1 className="text-[1.75rem] xs:text-3xl sm:text-5xl md:text-5xl lg:text-6xl font-extrabold leading-tight bg-gradient-to-r from-white via-sky-300 to-white bg-clip-text text-transparent mb-6 pb-2 px-2">
               Your Career Journey Starts Here
             </h1>
 
-            <h2 className="mt-6 text-2xl lg:text-4xl font-bold leading-snug text-white">
+            <h2 className="mt-4 text-lg xs:text-xl sm:text-2xl lg:text-4xl font-bold leading-snug text-white">
               Launch your Career in
-              <span className="block mt-2 text-sky-400 font-extrabold">
+              <span className="block mt-1 text-sky-400 font-extrabold">
                 <Typewriter
                   words={[
                     "Web Development",
@@ -313,24 +314,24 @@ export default function Home({ defaultConfig }) {
                   loop
                   cursor
                   cursorStyle="|"
-                  typeSpeed={80}
+                  typeSpeed={100}
                   deleteSpeed={60}
                   delaySpeed={1500}
                 />
               </span>
             </h2>
 
-            <p className="mt-6 text-lg text-sky-200 max-w-xl">
+            <p className="mt-6 text-sm sm:text-base lg:text-lg text-sky-200 max-w-xl mx-auto lg:mx-0 px-4 sm:px-0 opacity-80">
               We provide courses, internships, and AI-powered tools to help you
               enhance your skills and get ready for your dream jobs.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start">
               <Link
                 to="/jobs"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-sky-500 hover:bg-sky-400 transition shadow-lg"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-sky-500 hover:bg-sky-400 transition shadow-[0_0_20px_rgba(14,165,233,0.3)] font-bold uppercase tracking-widest text-xs"
               >
-                <FaSearch />
+                <FaSearch size={14} />
                 Explore Opportunities
               </Link>
             </div>
@@ -338,8 +339,11 @@ export default function Home({ defaultConfig }) {
 
           {/* PARTICLE SPHERE */}
           <motion.div
-            style={{ y: sphereY, scale: sphereScale }}
-            className="relative w-full h-[350px] md:h-[500px]"
+            style={{
+              y: window.innerWidth < 768 ? 0 : sphereY,
+              scale: sphereScale
+            }}
+            className="relative w-full h-[300px] md:h-[500px] lg:mt-0"
           >
             <ParticleSphere />
           </motion.div>
@@ -349,24 +353,24 @@ export default function Home({ defaultConfig }) {
 
       {/* ================= STATS ================= */}
       <section className="py-12 md:py-20 max-w-6xl mx-auto px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
           {[
             { icon: <FaBriefcase />, value: stats.jobs, label: 'Jobs' },
             { icon: <FaGraduationCap />, value: stats.internships, label: 'Internships' },
             { icon: <FaCalendarAlt />, value: stats.events, label: 'Events' },
-            { icon: <FaStar />, value: stats.users, label: 'Placements' }
+            { icon: <FaStar />, value: stats.users, label: 'Users' }
           ].map((s, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-black/30 border border-sky-500/20 rounded-2xl p-6 text-center"
+              className="bg-black/30 backdrop-blur-md border border-sky-500/20 rounded-2xl p-4 sm:p-6 text-center"
             >
-              <div className="text-3xl text-sky-400 mb-2 flex justify-center">{s.icon}</div>
-              <div className="text-2xl md:text-4xl font-black">{s.value}+</div>
-              <div className="text-sky-200 text-sm md:text-base">{s.label}</div>
+              <div className="text-2xl sm:text-3xl text-sky-400 mb-2 flex justify-center">{s.icon}</div>
+              <div className="text-xl sm:text-2xl md:text-4xl font-black">{s.value}+</div>
+              <div className="text-sky-200/70 text-[10px] sm:text-sm md:text-base uppercase tracking-widest">{s.label}</div>
             </motion.div>
           ))}
         </div>
@@ -375,8 +379,8 @@ export default function Home({ defaultConfig }) {
 
       <section className="py-16 px-6 max-w-7xl mx-auto">
         <div className="text-center mb-14">
-          <h2 className="text-4xl font-black text-white mb-4">Kick Your Journey With Us</h2>
-          <p className="text-xl text-sky-200 max-w-2xl mx-auto">Everything you need to launch your career, powered by IC</p>
+          <h2 className="text-3xl sm:text-4xl font-black text-white mb-4 uppercase tracking-tight">Kick Your Journey With Us</h2>
+          <p className="text-sm sm:text-xl text-sky-200/60 max-w-2xl mx-auto">Everything you need to launch your career, powered by IC</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -407,10 +411,10 @@ export default function Home({ defaultConfig }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { icon: <FaRobot />, title: "AI Resume Builder", description: "Create ATS-optimized resumes with AI suggestions.", link: "/resume-builder", linkText: "Build Resume" },
-            { icon: <FaChartLine />, title: "ATS Score Checker", description: "Get instant feedback on your resume's ATS compatibility.", link: "/ats-score", linkText: "Check Score" },
-            { icon: <FaLaptopCode />, title: "AI Skill Gap Analyzer", description: "Upskill with courses designed to make you a responsive ChatBot.", link: "/courses", linkText: "AI ChatBot" },
-            { icon: <FaCalendarAlt />, title: "AI Cover Letter Generator", description: "Stay updated with career fairs,We stand with you for your bright future.", link: "/events", linkText: "AI Voice Modal" }
+            { icon: <FaRobot />, title: "AI Resume Builder", description: "Create ATS-optimized resumes with AI suggestions.", link: "/ai", linkText: "Build Resume" },
+            { icon: <FaChartLine />, title: "ATS Score Checker", description: "Get instant feedback on your resume's ATS compatibility.", link: "/ai", linkText: "Check Score" },
+            { icon: <FaLaptopCode />, title: "Skill Gap Analyzer", description: "Upskill with courses designed to make you a responsive ChatBot.", link: "/ai", linkText: "Skill Analyze" },
+            { icon: <FaCalendarAlt />, title: "Cover Letter Generator", description: "Stay updated with career fairs,We stand with you for your bright future.", link: "/ai", linkText: "Cover Letter" }
           ].map((feature, i) => (
             <div key={i} className="group bg-black/30 backdrop-blur-lg rounded-2xl border border-sky-500/20 p-6 flex flex-col transition-all duration-300 hover:bg-black/40 hover:border-sky-500/30 hover:shadow-xl hover:shadow-sky-500/20 hover:-translate-y-2">
               <div className="w-16 h-16 rounded-full bg-sky-500/20 flex items-center justify-center text-2xl text-sky-300 mb-5 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
@@ -458,11 +462,11 @@ export default function Home({ defaultConfig }) {
       {/* ================= WHO IS THIS FOR ================= */}
       <section className="py-20 px-6 max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-black mb-4">Who Is This Platform For?</h2>
-          <p className="text-sky-200 text-lg">Designed for every career stage</p>
+          <h2 className="text-3xl sm:text-4xl font-black mb-4 uppercase tracking-tight">Who Is This Platform For?</h2>
+          <p className="text-sm sm:text-lg text-sky-200/60">Designed for every career stage</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             { icon: <FaGraduationCap />, title: "Students", desc: "Explore internships & build skills early" },
             { icon: <FaLaptopCode />, title: "Freshers", desc: "Crack ATS & land your first job" },
@@ -475,13 +479,13 @@ export default function Home({ defaultConfig }) {
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
               className="bg-gradient-to-br from-black/40 to-black/20 border border-sky-500/20 rounded-2xl p-8 text-center
-              hover:shadow-xl hover:shadow-sky-500/20 transition-all"
+              hover:shadow-xl hover:shadow-sky-500/20 transition-all flex flex-col items-center"
             >
               <div className="text-4xl text-sky-400 mb-4 flex justify-center">
                 {item.icon}
               </div>
-              <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
-              <p className="text-sky-200">{item.desc}</p>
+              <h3 className="text-xl sm:text-2xl font-bold mb-3">{item.title}</h3>
+              <p className="text-sky-200/70 text-sm sm:text-base">{item.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -592,7 +596,7 @@ export default function Home({ defaultConfig }) {
             <h2 className="text-4xl md:text-5xl font-black text-white mb-6">Ready to Transform Your Career?</h2>
             <p className="text-xl text-sky-200 mb-8 max-w-2xl">Join thousands of students who've landed their dream jobs through our platform.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link to="/signup" className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-1 transition-all duration-300 hover:bg-gradient-to-r hover:from-sky-400 hover:to-sky-500 text-center w-full sm:w-auto">
+              <Link to="/auth" className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-1 transition-all duration-300 hover:bg-gradient-to-r hover:from-sky-400 hover:to-sky-500 text-center w-full sm:w-auto">
                 Get Started Free
               </Link>
               <Link to="/courses" className="bg-black/40 backdrop-blur-sm text-white border-2 border-sky-500/30 px-8 py-4 rounded-full font-semibold text-lg hover:bg-black/50 hover:border-sky-500/50 transition-all duration-300 text-center w-full sm:w-auto">
@@ -620,59 +624,71 @@ export default function Home({ defaultConfig }) {
           </p>
         </div>
 
-        <motion.div
-          className="flex gap-8"
-          animate={{ x: ['0%', '-100%'] }}
-          transition={{ repeat: Infinity, duration: 22, ease: 'linear' }}
-        >
-          {[
-            {
-              name: "Rahul Singh",
-              role: "BTech Final Year",
-              text: "ATS checker showed exact issues in my resume. Got interview calls in 2 weeks."
-            },
-            {
-              name: "Neha Kapoor",
-              role: "MBA Student",
-              text: "Career roadmap + internships made my profile very strong."
-            },
-            {
-              name: "Aman Verma",
-              role: "Frontend Developer",
-              text: "Clean UI, verified jobs & no spam. Loved the experience."
-            },
-            {
-              name: "Sneha Joshi",
-              role: "Data Analyst",
-              text: "Premium courses helped me switch domain confidently."
-            }
-          ].concat([
-            {
-              name: "Rahul Singh",
-              role: "BTech Final Year",
-              text: "ATS checker showed exact issues in my resume. Got interview calls in 2 weeks."
-            },
-            {
-              name: "Neha Kapoor",
-              role: "MBA Student",
-              text: "Career roadmap + internships made my profile very strong."
-            }
-          ]).map((t, i) => (
-            <div
-              key={i}
-              className="min-w-[320px] bg-black/30 backdrop-blur-lg border border-sky-500/20
-              rounded-2xl p-6 hover:shadow-xl hover:shadow-sky-500/20 transition-all"
-            >
-              <p className="italic text-sky-100 mb-4">“{t.text}”</p>
-              <p className="font-bold text-white">{t.name}</p>
-              <p className="text-sky-400 text-sm">{t.role}</p>
-            </div>
-          ))}
-        </motion.div>
+        <div className="flex overflow-hidden">
+          <motion.div
+            className="flex gap-8 w-max flex-nowrap"
+            animate={{ x: [0, '-50%'] }}
+            transition={{ repeat: Infinity, duration: 30, ease: 'linear' }}
+          >
+            {[
+              {
+                name: "Rahul Singh",
+                role: "BTech Final Year",
+                text: "ATS checker showed exact issues in my resume. Got interview calls in 2 weeks."
+              },
+              {
+                name: "Neha Kapoor",
+                role: "MBA Student",
+                text: "Career roadmap + internships made my profile very strong."
+              },
+              {
+                name: "Aman Verma",
+                role: "Frontend Developer",
+                text: "Clean UI, verified jobs & no spam. Loved the experience."
+              },
+              {
+                name: "Sneha Joshi",
+                role: "Data Analyst",
+                text: "Premium courses helped me switch domain confidently."
+              }
+            ].concat([
+              {
+                name: "Rahul Singh",
+                role: "BTech Final Year",
+                text: "ATS checker showed exact issues in my resume. Got interview calls in 2 weeks."
+              },
+              {
+                name: "Neha Kapoor",
+                role: "MBA Student",
+                text: "Career roadmap + internships made my profile very strong."
+              },
+              {
+                name: "Aman Verma",
+                role: "Frontend Developer",
+                text: "Clean UI, verified jobs & no spam. Loved the experience."
+              },
+              {
+                name: "Sneha Joshi",
+                role: "Data Analyst",
+                text: "Premium courses helped me switch domain confidently."
+              }
+            ]).map((t, i) => (
+              <div
+                key={i}
+                className="w-[320px] bg-black/30 backdrop-blur-lg border border-sky-500/20
+                rounded-2xl p-6 hover:shadow-xl hover:shadow-sky-500/20 transition-all"
+              >
+                <p className="italic text-sky-100 mb-4">“{t.text}”</p>
+                <p className="font-bold text-white">{t.name}</p>
+                <p className="text-sky-400 text-sm">{t.role}</p>
+              </div>
+            ))}
+          </motion.div>
+        </div>
       </section>
 
       {/* ================= TRUSTED BY COMPANIES ================= */}
-      <section className="py-20 px-6 bg-black/30 overflow-hidden">
+      <section className="py-20 px-6 bg-black/30 overflow-hidden pb-30">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-black mb-3">
             Trusted by Hiring Partners
@@ -682,43 +698,44 @@ export default function Home({ defaultConfig }) {
           </p>
         </div>
 
-        <motion.div
-          className="flex gap-24 items-center"
-          animate={{ x: ['0%', '-100%'] }}
-          transition={{ repeat: Infinity, duration: 28, ease: 'linear' }}
-        >
-          {[
-            { name: 'Google', icon: <FaGoogle />, color: 'text-[#4285F4]' },
-            { name: 'Amazon', icon: <FaAmazon />, color: 'text-[#FF9900]' },
-            { name: 'Microsoft', icon: <FaMicrosoft />, color: 'text-[#00A4EF]' },
-            { name: 'Meta', icon: <FaFacebook />, color: 'text-[#1877F2]' },
-            { name: 'Flipkart', icon: <SiFlipkart />, color: 'text-[#2874F0]' },
-            { name: 'Infosys', icon: <SiInfosys />, color: 'text-[#007CC3]' }
-          ]
-
-            .concat([
+        <div className="flex overflow-hidden">
+          <motion.div
+            className="flex gap-24 items-center w-max flex-nowrap"
+            animate={{ x: [0, '-50%'] }}
+            transition={{ repeat: Infinity, duration: 35, ease: 'linear' }}
+          >
+            {[
               { name: 'Google', icon: <FaGoogle />, color: 'text-[#4285F4]' },
               { name: 'Amazon', icon: <FaAmazon />, color: 'text-[#FF9900]' },
               { name: 'Microsoft', icon: <FaMicrosoft />, color: 'text-[#00A4EF]' },
               { name: 'Meta', icon: <FaFacebook />, color: 'text-[#1877F2]' },
               { name: 'Flipkart', icon: <SiFlipkart />, color: 'text-[#2874F0]' },
               { name: 'Infosys', icon: <SiInfosys />, color: 'text-[#007CC3]' }
-            ])
-            .map((company, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 text-xl font-semibold whitespace-nowrap
-                transition-all duration-300 hover:scale-110"
-              >
-                <span className={`text-3xl ${company.color}`}>
-                  {company.icon}
-                </span>
-                <span className="text-sky-100">
-                  {company.name}
-                </span>
-              </div>
-            ))}
-        </motion.div>
+            ]
+              .concat([
+                { name: 'Google', icon: <FaGoogle />, color: 'text-[#4285F4]' },
+                { name: 'Amazon', icon: <FaAmazon />, color: 'text-[#FF9900]' },
+                { name: 'Microsoft', icon: <FaMicrosoft />, color: 'text-[#00A4EF]' },
+                { name: 'Meta', icon: <FaFacebook />, color: 'text-[#1877F2]' },
+                { name: 'Flipkart', icon: <SiFlipkart />, color: 'text-[#2874F0]' },
+                { name: 'Infosys', icon: <SiInfosys />, color: 'text-[#007CC3]' }
+              ])
+              .map((company, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 text-xl font-semibold whitespace-nowrap
+                  transition-all duration-300 hover:scale-110 px-4"
+                >
+                  <span className={`text-3xl ${company.color}`}>
+                    {company.icon}
+                  </span>
+                  <span className="text-sky-100">
+                    {company.name}
+                  </span>
+                </div>
+              ))}
+          </motion.div>
+        </div>
       </section>
     </div>
   );

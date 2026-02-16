@@ -45,11 +45,15 @@ export default function Profile() {
                     where('userId', '==', currentUser.uid)
                 );
 
-                // Fetch AI Purchase History
-                setAiHistory(getPurchaseHistory(currentUser.uid));
+                // Fetch AI Purchase History & Access
+                const fetchAIData = async () => {
+                    const history = await getPurchaseHistory(currentUser.uid);
+                    setAiHistory(history);
 
-                // Check Skill Gap Analyzer access
-                setIsSkillGapLocked(!isToolPurchased(currentUser.uid, 'skill-gap'));
+                    const locked = await isToolPurchased(currentUser.uid, 'skill-gap');
+                    setIsSkillGapLocked(!locked);
+                };
+                fetchAIData();
 
                 const unsubscribeInteractions = onSnapshot(q, (snapshot) => {
                     const docs = snapshot.docs.map(doc => ({
@@ -414,31 +418,36 @@ export default function Profile() {
                                     {activeTab === 'ai_suite' ? (
                                         aiHistory.length > 0 ? (
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                {aiHistory.map((tool, idx) => (
-                                                    <motion.div
-                                                        key={tool.id}
-                                                        initial={{ opacity: 0, y: 20 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        transition={{ delay: idx * 0.1 }}
-                                                        className="bg-[#0f172a]/60 border border-sky-500/20 p-6 rounded-[2rem] flex flex-col items-center text-center group hover:bg-sky-500/5 transition-all"
-                                                    >
-                                                        <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-4 group-hover:scale-110 transition-transform">
-                                                            <FaBrain size={20} />
-                                                        </div>
-                                                        <h4 className="text-white font-black text-sm uppercase tracking-tight mb-2">{tool.name}</h4>
-                                                        <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-6">Pro Level Access</p>
-                                                        <button
-                                                            onClick={() => navigate(
-                                                                tool.id === 'ats-checker' ? '/ats-score-checker' :
-                                                                    tool.id === 'skill-gap' ? '/skill-gap-analyzer' :
-                                                                        tool.id === 'cover-letter' ? '/cover-letter-ai' : '/ai-hub'
-                                                            )}
-                                                            className="w-full py-3 bg-white text-black rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-sky-400 transition-all"
+                                                {aiHistory.map((tool, idx) => {
+                                                    const toolName = tool.toolId === 'ats-checker' ? 'ATS Score Checker' :
+                                                        tool.toolId === 'skill-gap' ? 'Skill Gap Analyzer' :
+                                                            tool.toolId === 'cover-letter' ? 'AI Cover Letter' : 'AI Tool';
+                                                    return (
+                                                        <motion.div
+                                                            key={tool.id}
+                                                            initial={{ opacity: 0, y: 20 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ delay: idx * 0.1 }}
+                                                            className="bg-[#0f172a]/60 border border-sky-500/20 p-6 rounded-[2rem] flex flex-col items-center text-center group hover:bg-sky-500/5 transition-all"
                                                         >
-                                                            Open Tool
-                                                        </button>
-                                                    </motion.div>
-                                                ))}
+                                                            <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-4 group-hover:scale-110 transition-transform">
+                                                                <FaBrain size={20} />
+                                                            </div>
+                                                            <h4 className="text-white font-black text-sm uppercase tracking-tight mb-2">{toolName}</h4>
+                                                            <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-6">Pro Level Access</p>
+                                                            <button
+                                                                onClick={() => navigate(
+                                                                    tool.toolId === 'ats-checker' ? '/ats-score-checker' :
+                                                                        tool.toolId === 'skill-gap' ? '/skill-gap-analyzer' :
+                                                                            tool.toolId === 'cover-letter' ? '/cover-letter-ai' : '/ai'
+                                                                )}
+                                                                className="w-full py-3 bg-white text-black rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-sky-400 transition-all"
+                                                            >
+                                                                Open Tool
+                                                            </button>
+                                                        </motion.div>
+                                                    );
+                                                })}
                                             </div>
                                         ) : (
                                             <EmptyState />
@@ -446,28 +455,33 @@ export default function Profile() {
                                     ) : activeTab === 'ai_history' ? (
                                         aiHistory.length > 0 ? (
                                             <div className="space-y-4">
-                                                {aiHistory.map((item, idx) => (
-                                                    <motion.div
-                                                        key={item.transactionId}
-                                                        initial={{ opacity: 0, x: -20 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        className="bg-white/5 border border-white/10 p-4 sm:p-6 rounded-[1.5rem] flex items-center justify-between gap-4"
-                                                    >
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                                                                <FaCreditCard size={14} />
+                                                {aiHistory.map((item, idx) => {
+                                                    const toolName = item.toolId === 'ats-checker' ? 'ATS Score Checker' :
+                                                        item.toolId === 'skill-gap' ? 'Skill Gap Analyzer' :
+                                                            item.toolId === 'cover-letter' ? 'AI Cover Letter' : 'AI Tool';
+                                                    return (
+                                                        <motion.div
+                                                            key={item.id}
+                                                            initial={{ opacity: 0, x: -20 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            className="bg-white/5 border border-white/10 p-4 sm:p-6 rounded-[1.5rem] flex items-center justify-between gap-4"
+                                                        >
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                                                                    <FaCreditCard size={14} />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-white font-black text-sm uppercase tracking-tight">{toolName}</p>
+                                                                    <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest">Order ID: {item.paymentId}</p>
+                                                                </div>
                                                             </div>
-                                                            <div>
-                                                                <p className="text-white font-black text-sm uppercase tracking-tight">{item.name}</p>
-                                                                <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest">Order ID: {item.transactionId}</p>
+                                                            <div className="text-right">
+                                                                <p className="text-emerald-400 font-black text-sm">₹{item.amount}</p>
+                                                                <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest">{item.purchasedAt?.toDate() ? item.purchasedAt.toDate().toLocaleDateString() : 'N/A'}</p>
                                                             </div>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="text-emerald-400 font-black text-sm">₹{item.price}</p>
-                                                            <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest">{new Date(item.purchasedAt).toLocaleDateString()}</p>
-                                                        </div>
-                                                    </motion.div>
-                                                ))}
+                                                        </motion.div>
+                                                    );
+                                                })}
                                             </div>
                                         ) : (
                                             <EmptyState />

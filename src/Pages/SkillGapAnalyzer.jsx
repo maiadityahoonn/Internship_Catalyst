@@ -94,7 +94,8 @@ export default function SkillGapAnalyzer() {
         navigate("/auth");
         return;
       }
-      setIsLocked(!isToolPurchased(auth.currentUser.uid, "skill-gap"));
+      const owned = await isToolPurchased(auth.currentUser.uid, "skill-gap");
+      setIsLocked(!owned);
     };
     checkAccess();
   }, [navigate]);
@@ -197,7 +198,7 @@ export default function SkillGapAnalyzer() {
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black mb-3 uppercase tracking-tight text-white">Analysis Restricted</h2>
                 <p className="text-slate-400 text-xs sm:text-sm max-w-sm mx-auto mb-8 font-medium leading-relaxed">
-                  The Skill Gap Intelligence system is a premium protocol. Unlock full access to audit your career trajectory for <span className="text-white font-black">₹{PRICING['skill-gap']}</span>.
+                  The Skill Gap Intelligence system is a premium protocol. Unlock full access to audit your career trajectory for <span className="text-white font-black">₹{PRICING['skill-gap'].sale}</span>.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <button
