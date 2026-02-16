@@ -47,9 +47,9 @@ export default function Courses() {
 
   const upcomingCourses = [
     { icon: <Layout className="text-sky-400" size={24} />, title: "Frontend Development", desc: "Master Modern UI/UX Architecture" },
-    { icon: <Server className="text-indigo-400" size={24} />, title: "Backend Systems", desc: "Scalable Infrastructure & APIs" },
-    { icon: <Layers className="text-purple-400" size={24} />, title: "Full Stack Mastery", desc: "End-to-End Application Delivery" },
-    { icon: <Database className="text-emerald-400" size={24} />, title: "Database Engineering", desc: "SQL, NoSQL & Data Modeling" },
+    { icon: <Server className="text-indigo-400" size={24} />, title: "Backend Development", desc: "Scalable Infrastructure & APIs" },
+    { icon: <Layers className="text-purple-400" size={24} />, title: "Full Stack Developer", desc: "End-to-End Application Delivery" },
+    { icon: <Database className="text-emerald-400" size={24} />, title: "Database Management", desc: "SQL, NoSQL & Data Modeling" },
     { icon: <BarChart3 className="text-amber-400" size={24} />, title: "Data Analytics", desc: "Insights via Data Visualization" },
     { icon: <Cpu className="text-rose-400" size={24} />, title: "Data Science", desc: "ML, AI & Predictive Modeling" },
     { icon: <Orbit className="text-cyan-400" size={24} />, title: "N8N Automation", desc: "No-Code Workflow Engineering" },

@@ -61,7 +61,7 @@ export default function AIPage() {
         },
         {
             id: "ats-checker",
-            title: "Score Checker",
+            title: "ATS Score Checker",
             description: "Full check of your resume logic and design.",
             icon: <Target className="text-indigo-400" size={24} />,
             path: "/ats-score-checker",
@@ -72,7 +72,7 @@ export default function AIPage() {
         },
         {
             id: "skill-gap",
-            title: "Skill Analyzer",
+            title: "Skill Gap Analyzer",
             description: "Your own study plan and skill matching for any job.",
             icon: <Lightbulb className="text-purple-400" size={24} />,
             path: "/skill-gap-analyzer",
@@ -83,7 +83,7 @@ export default function AIPage() {
         },
         {
             id: "cover-letter",
-            title: "AI Cover Letter",
+            title: "AI Cover Letter Generator",
             description: "Great matching letters for better results in your job search.",
             icon: <Zap className="text-emerald-400" size={24} />,
             path: "/cover-letter-ai",
