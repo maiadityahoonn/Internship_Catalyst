@@ -22,6 +22,7 @@ import {
   FaBullhorn,
 } from 'react-icons/fa';
 import { SiFlipkart, SiInfosys } from 'react-icons/si';
+import { FaMeta } from 'react-icons/fa6';
 
 //  INTERACTIVE PARTICLE SPHERE
 function ParticlePoints() {
@@ -708,7 +709,7 @@ export default function Home({ defaultConfig }) {
               { name: 'Google', icon: <FaGoogle />, color: 'text-[#4285F4]' },
               { name: 'Amazon', icon: <FaAmazon />, color: 'text-[#FF9900]' },
               { name: 'Microsoft', icon: <FaMicrosoft />, color: 'text-[#00A4EF]' },
-              { name: 'Meta', icon: <FaFacebook />, color: 'text-[#1877F2]' },
+              { name: 'Meta', icon: <FaMeta />, color: 'text-[#1877F2]' },
               { name: 'Flipkart', icon: <SiFlipkart />, color: 'text-[#2874F0]' },
               { name: 'Infosys', icon: <SiInfosys />, color: 'text-[#007CC3]' }
             ]
@@ -716,7 +717,7 @@ export default function Home({ defaultConfig }) {
                 { name: 'Google', icon: <FaGoogle />, color: 'text-[#4285F4]' },
                 { name: 'Amazon', icon: <FaAmazon />, color: 'text-[#FF9900]' },
                 { name: 'Microsoft', icon: <FaMicrosoft />, color: 'text-[#00A4EF]' },
-                { name: 'Meta', icon: <FaFacebook />, color: 'text-[#1877F2]' },
+                { name: 'Meta', icon: <FaMeta />, color: 'text-[#1877F2]' },
                 { name: 'Flipkart', icon: <SiFlipkart />, color: 'text-[#2874F0]' },
                 { name: 'Infosys', icon: <SiInfosys />, color: 'text-[#007CC3]' }
               ])
