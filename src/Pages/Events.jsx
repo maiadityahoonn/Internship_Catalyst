@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SEO from '../components/SEO';
 import { db } from '../firebase';
 import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
@@ -98,6 +99,7 @@ export default function Events() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white pt-32 pb-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-sky-500/30 overflow-x-hidden">
+      <SEO title="Events" />
 
       {/* Background Decorative Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">

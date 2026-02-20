@@ -97,10 +97,10 @@ export default function Navbar({ siteTitle }) {
           {/* 1. Logo Section (Left) */}
           <div className="flex-1 flex items-center justify-start">
             {/* <Link to="/" className="flex items-center space-x-3 group"> */}
-              <img src={logoimg} className="w-10 h-10 rounded-xl shadow-lg shadow-sky-500/10 group-hover:scale-110 transition-transform duration-500" alt="Logo" />
-              <div className="text-base sm:text-lg md:text-xl text-white font-bold tracking-tight whitespace-nowrap">
-                Internship <span className="text-sky-400">Catalyst</span>
-              </div>
+            <img src={logoimg} className="w-10 h-10 rounded-xl shadow-lg shadow-sky-500/10 group-hover:scale-110 transition-transform duration-500" alt="Logo" />
+            <div className="text-base sm:text-lg md:text-xl text-white pl-2 font-bold tracking-tight whitespace-nowrap">
+              Internship <span className="text-sky-400">Catalyst</span>
+            </div>
             {/* </Link> */}
           </div>
 

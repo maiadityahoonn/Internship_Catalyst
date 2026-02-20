@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Typewriter } from "react-simple-typewriter"
 import { Canvas, useFrame } from '@react-three/fiber';
@@ -282,6 +283,7 @@ export default function Home({ defaultConfig }) {
 
   return (
     <div className="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white overflow-x-hidden font-sans">
+      <SEO />
 
       {/* ================= HERO ================= */}
       <section className="relative min-h-screen flex items-center pt-24 pb-12 px-6 overflow-hidden">

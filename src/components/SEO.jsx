@@ -8,13 +8,13 @@ const SEO = ({ title, description, keywords, canonical }) => {
 
     useEffect(() => {
         // Update Document Title
-        const fullTitle = title ? `${title} | Internship Catalyst` : "Internship Catalyst | Your Professional Career Portal";
+        const fullTitle = title ? `${title} | Internship Catalyst` : "Internship Catalyst";
         document.title = fullTitle;
 
         // Update Meta Description
         let metaDescription = document.querySelector('meta[name="description"]');
         if (metaDescription) {
-            metaDescription.setAttribute('content', description || "Internship Catalyst is the #1 student platform to launch your dream career. Connect with top companies, find internships, jobs, and access premium AI career tools.");
+            metaDescription.setAttribute('content', description || "Internship Catalyst offers verified jobs, internships, professional skill courses, and AI-powered career tools to help students grow and get hired faster today.");
         }
 
         // Update Meta Keywords
@@ -36,7 +36,7 @@ const SEO = ({ title, description, keywords, canonical }) => {
         };
 
         updateOgTag('og:title', fullTitle);
-        updateOgTag('og:description', description || "Connect with top companies and unlock exclusive opportunities tailored for your growth.");
+        updateOgTag('og:description', description || "Internship Catalyst offers verified jobs, internships, professional skill courses, and AI-powered career tools to help students grow and get hired faster today.");
         updateOgTag('og:url', currentUrl);
 
         // Update Twitter Tags
@@ -46,7 +46,7 @@ const SEO = ({ title, description, keywords, canonical }) => {
         };
 
         updateTwitterTag('twitter:title', fullTitle);
-        updateTwitterTag('twitter:description', description || "Connect with top companies and unlock exclusive opportunities tailored for your growth.");
+        updateTwitterTag('twitter:description', description || "Internship Catalyst offers verified jobs, internships, professional skill courses, and AI-powered career tools to help students grow and get hired faster today.");
         updateTwitterTag('twitter:url', currentUrl);
 
     }, [title, description, keywords, canonical, currentUrl]);

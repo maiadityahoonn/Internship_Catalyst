@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
 import { db, auth } from '../firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import {
@@ -118,6 +119,7 @@ export default function Internships() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white pt-24 md:pt-32 pb-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-purple-500/30 overflow-x-hidden">
+      <SEO title="Internships" />
 
       <div className="max-w-7xl mx-auto">
 
