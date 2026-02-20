@@ -1,15 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({
-  apiKey: import.meta.env.VITE_GEMINI_API_KEY || ""
-});
+const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY || "");
 
 if (!import.meta.env.VITE_GEMINI_API_KEY) {
   console.error("VITE_GEMINI_API_KEY is missing! Please check your .env file.");
 } else {
-  const key = import.meta.env.VITE_GEMINI_API_KEY;
-  console.log("Gemini API Key loaded (Prefix: " + key.substring(0, 6) + "...)");
+  // Use a safer way to log the key presence
+  console.log("Gemini AI Service Initialized");
 }
+
+const MODEL_NAME = "gemini-1.5-flash";
+
 
 /**
  * Analyzes the skill gap between a user's current skills and their target role.
@@ -57,10 +58,7 @@ RULES:
 - Be practical, modern, and industry-relevant. Think like a hiring manager at a top tech company.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-    });
+    const response = await ai.getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
 
     const text = response.text;
     const cleaned = text.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
@@ -97,10 +95,7 @@ Return them as a comma-separated list. No markdown.`;
   }
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-    });
+    const response = await ai.getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
     return response.text;
   } catch (err) {
     console.error("Gemini generation error:", err);
@@ -139,10 +134,7 @@ RULES FOR THE LETTER:
 5. Keep it length-appropriate (approx 250-400 words).`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-    });
+    const response = await ai.getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
 
     const text = response.text;
     const cleaned = text.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
@@ -199,10 +191,7 @@ UNIQUE ANALYSIS RULES:
 5. If JD is empty, analyze resume for general "Elite Industry Standards" for ${currentYear}.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-    });
+    const response = await ai.getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
 
     const text = response.text;
     const cleaned = text.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
