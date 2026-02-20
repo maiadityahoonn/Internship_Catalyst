@@ -1,13 +1,15 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY || "");
+const ai = new GoogleGenAI({
+  apiKey: import.meta.env.VITE_GEMINI_API_KEY || ""
+});
 
 if (!import.meta.env.VITE_GEMINI_API_KEY) {
   console.error("VITE_GEMINI_API_KEY is missing! Please check your .env file.");
 } else {
-  // Use a safer way to log the key presence
   console.log("Gemini AI Service Initialized");
 }
+
 
 const MODEL_NAME = "gemini-1.5-flash";
 
