@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
 import { db, auth } from '../firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 import {
   Search,
   MapPin,
@@ -50,6 +51,14 @@ export default function Internships() {
         id: doc.id,
         ...doc.data()
       }));
+
+      // Subtle Sort: Featured first, then by date
+      data.sort((a, b) => {
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        return (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0);
+      });
+
       setInternships(data);
       setLoading(false);
     }, (error) => {
@@ -271,8 +280,16 @@ export default function Internships() {
                 {/* Top Section */}
                 <div className="p-6 relative z-10">
                   <div className="flex justify-between items-start mb-4">
-                    <div className="w-14 h-14 rounded-2xl bg-[#1e293b] flex items-center justify-center text-3xl shadow-inner border border-white/10 group-hover:shadow-purple-500/20 transition-all">
-                      {item.companyLogo || <Building2 className="text-slate-400 group-hover:text-purple-400 transition-colors w-7 h-7" />}
+                    <div className="w-14 h-14 rounded-2xl bg-[#1e293b] flex items-center justify-center text-3xl shadow-inner border border-white/10 group-hover:shadow-purple-500/20 transition-all overflow-hidden">
+                      {item.companyLogo ? (
+                        <img
+                          src={getOptimizedImageUrl(item.companyLogo, { w: 100, h: 100 })}
+                          alt={item.company}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Building2 className="text-slate-400 group-hover:text-purple-400 transition-colors w-7 h-7" />
+                      )}
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${item.officeType === 'remote' ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-400' :
@@ -305,7 +322,7 @@ export default function Internships() {
                     </div>
                     <div className="bg-white/5 rounded-lg p-2 border border-white/5">
                       <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1"><Clock className="w-3 h-3" /> Deadline</p>
-                      <p className="text-xs text-rose-400 font-medium truncate">{item.deadline || 'ASAP'}</p>
+                      <p className="text-rose-400 font-medium truncate">{item.deadline || 'ASAP'}</p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-2 border border-white/5">
                       <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1"><Briefcase className="w-3 h-3" /> Openings</p>
@@ -409,8 +426,16 @@ export default function Internships() {
 
               <div className="p-6 sm:p-8 md:p-10">
                 <div className="flex flex-col sm:flex-row gap-6 mb-8">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#1e293b] flex items-center justify-center text-3xl sm:text-4xl border border-white/10 shrink-0">
-                    {selectedInternship.companyLogo || <Building2 className="text-purple-500 w-8 h-8 sm:w-10 sm:h-10" />}
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#1e293b] flex items-center justify-center text-3xl sm:text-4xl border border-white/10 shrink-0 overflow-hidden">
+                    {selectedInternship.companyLogo ? (
+                      <img
+                        src={getOptimizedImageUrl(selectedInternship.companyLogo, { w: 200, h: 200 })}
+                        alt={selectedInternship.company}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Building2 className="text-purple-500 w-8 h-8 sm:w-10 sm:h-10" />
+                    )}
                   </div>
                   <div>
                     <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">{selectedInternship.title}</h2>

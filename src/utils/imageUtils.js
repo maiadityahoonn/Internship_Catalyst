@@ -1,31 +1,55 @@
 /**
  * Converts a standard Google Drive sharing link into a direct link that can be used in <img> tags.
- * Supports /file/d/ID/view and ?id=ID formats.
- * 
- * @param {string} url - The Google Drive URL
- * @returns {string} - The direct image link or the original URL if no ID is found
  */
 export const getDirectDriveLink = (url) => {
     if (!url || typeof url !== 'string') return url;
 
-    // Check if it's a google drive link
     if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
-        let fileId = '';
-
-        // Extract ID using regex - more robust
-        // Catches /file/d/ID/... , /d/ID/... , and ?id=ID
         const idRegex = /(?:\/file\/d\/|\/d\/|id=)([a-zA-Z0-9_-]{25,})/;
         const match = url.match(idRegex);
-
         if (match && match[1]) {
-            fileId = match[1];
+            return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1600`;
         }
+    }
+    return url;
+};
 
-        if (fileId) {
-            // thumbnail endpoint is often more reliable for direct display in <img> tags
-            // and supports size parameter (sz=w1600 is plenty for posters)
-            return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
-        }
+/**
+ * Optimizes an ImageKit URL by appending transformation parameters.
+ * @param {string} url - The base ImageKit URL
+ * @param {object} options - { width, height, quality }
+ */
+export const optimizeImageKitUrl = (url, { w, h, q = 80 } = {}) => {
+    if (!url || typeof url !== 'string' || !url.includes('ik.imagekit.io')) return url;
+
+    // Check if there are already transformations
+    const separator = url.includes('?') ? '&' : '?';
+    let tr = `tr:q-${q}`;
+    if (w) tr += `,w-${w}`;
+    if (h) tr += `,h-${h}`;
+
+    // Handle ImageKit's specific path structure or query params
+    if (url.includes('tr:')) {
+        return url.replace(/tr:[^/]+/, tr);
+    }
+
+    return `${url}${url.includes('?') ? '&' : '?'}${tr}`;
+};
+
+/**
+ * Generic function to get an optimized image URL supporting both Drive and ImageKit.
+ */
+export const getOptimizedImageUrl = (url, options = {}) => {
+    if (!url) return '';
+
+    // 1. Handle Google Drive
+    if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
+        return getDirectDriveLink(url);
+    }
+
+    // 2. Handle ImageKit
+    if (url.includes('ik.imagekit.io')) {
+        return optimizeImageKitUrl(url, options);
     }
 
     return url;

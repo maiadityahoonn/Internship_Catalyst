@@ -21,7 +21,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getDirectDriveLink } from '../utils/imageUtils';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 export default function Events() {
   // State management
@@ -51,6 +51,14 @@ export default function Events() {
         id: doc.id,
         ...doc.data()
       }));
+
+      // Subtle Sort: Featured first, then by date
+      data.sort((a, b) => {
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        return (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0);
+      });
+
       setEvents(data);
       setLoading(false);
       setError(null);
@@ -297,7 +305,7 @@ export default function Events() {
                     <div className="relative h-56 w-full overflow-hidden">
                       {event.posterLink ? (
                         <img
-                          src={getDirectDriveLink(event.posterLink)}
+                          src={getOptimizedImageUrl(event.posterLink, { w: 800, h: 600 })}
                           alt={event.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />

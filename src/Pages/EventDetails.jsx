@@ -9,7 +9,7 @@ import {
     Phone, Mail, User, Clock, AlertCircle, Sparkles, DollarSign
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getDirectDriveLink } from '../utils/imageUtils';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 export default function EventDetails() {
     const { id } = useParams();
@@ -122,7 +122,7 @@ export default function EventDetails() {
                         <div className="relative group">
                             <div className="relative h-[300px] md:h-[450px] w-full rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl">
                                 {event.posterLink ? (
-                                    <img src={getDirectDriveLink(event.posterLink)} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
+                                    <img src={getOptimizedImageUrl(event.posterLink, { w: 1200, q: 90 })} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
                                 ) : (
                                     <div className="w-full h-full bg-gradient-to-br from-slate-900 via-indigo-950 to-black flex items-center justify-center">
                                         <Calendar className="w-20 h-20 text-white/10" />

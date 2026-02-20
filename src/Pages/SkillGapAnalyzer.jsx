@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { FaLock, FaShieldAlt } from "react-icons/fa";
 import { auth } from "../firebase";
-import { isToolPurchased, PRICING } from "../utils/aiMonetization";
+import { isToolPurchased, recordPurchase, PRICING } from "../utils/aiMonetization";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 
@@ -89,16 +89,22 @@ export default function SkillGapAnalyzer() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAccess = async () => {
-      if (!auth.currentUser) {
-        navigate("/auth");
-        return;
-      }
-      const owned = await isToolPurchased(auth.currentUser.uid, "skill-gap");
-      setIsLocked(!owned);
-    };
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+
     checkAccess();
   }, [navigate]);
+
+  const checkAccess = async () => {
+    if (!auth.currentUser) {
+      navigate("/auth");
+      return;
+    }
+    const owned = await isToolPurchased(auth.currentUser.uid, "skill-gap");
+    setIsLocked(!owned);
+  };
 
   const handleAnalyze = async () => {
     if (!currentSkills.trim()) {
@@ -125,6 +131,46 @@ export default function SkillGapAnalyzer() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePayment = async () => {
+    if (!auth.currentUser) {
+      navigate('/auth');
+      return;
+    }
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount: PRICING['skill-gap'].sale * 100,
+      currency: "INR",
+      name: "Internship Catalyst",
+      description: "3 Month Access to Skill Gap Analyzer",
+      image: "https://internshipcatalyst.com/logo-og.png",
+      handler: async (response) => {
+        const success = await recordPurchase(
+          auth.currentUser.uid,
+          'skill-gap',
+          response.razorpay_payment_id
+        );
+
+        if (success) {
+          alert("Skill Gap Analyzer Unlocked Successfully!");
+          setIsLocked(false);
+        } else {
+          alert("Something went wrong. Please contact support.");
+        }
+      },
+      prefill: {
+        name: auth.currentUser.displayName || "",
+        email: auth.currentUser.email || ""
+      },
+      theme: {
+        color: "#a855f7"
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
   };
 
   const getScoreColor = (score) => {
@@ -202,13 +248,13 @@ export default function SkillGapAnalyzer() {
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <button
-                    onClick={() => navigate('/ai-hub')}
-                    className="px-8 py-3.5 rounded-xl bg-white text-black font-black uppercase tracking-widest text-[10px] hover:bg-sky-400 transition-all shadow-xl shadow-sky-500/20 w-full sm:w-auto"
+                    onClick={handlePayment}
+                    className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black uppercase tracking-widest text-[10px] hover:shadow-xl hover:shadow-purple-500/20 transition-all w-full sm:w-auto"
                   >
-                    Buy Access
+                    Unlock Now
                   </button>
                   <button
-                    onClick={() => navigate('/ai-hub')}
+                    onClick={() => navigate('/ai')}
                     className="px-8 py-3.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all w-full sm:w-auto"
                   >
                     Back to Hub

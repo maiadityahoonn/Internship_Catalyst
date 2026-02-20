@@ -19,7 +19,7 @@ import { Loader2, ArrowRight, RefreshCw, Sparkles, ChevronRight, Info } from "lu
 import MainLayout from "../layouts/MainLayout";
 import { generateCoverLetter } from "../services/gemini";
 import { auth } from "../firebase";
-import { isToolPurchased, PRICING } from "../utils/aiMonetization";
+import { isToolPurchased, recordPurchase, PRICING } from "../utils/aiMonetization";
 import { useNavigate } from "react-router-dom";
 
 export default function AICoverLetter() {
@@ -40,16 +40,22 @@ export default function AICoverLetter() {
   const [activeTab, setActiveTab] = useState("result");
 
   useEffect(() => {
-    const checkAccess = async () => {
-      if (!auth.currentUser) {
-        navigate("/auth");
-        return;
-      }
-      const purchased = await isToolPurchased(auth.currentUser.uid, "cover-letter");
-      setIsLocked(!purchased);
-    };
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+
     checkAccess();
   }, [navigate]);
+
+  const checkAccess = async () => {
+    if (!auth.currentUser) {
+      navigate("/auth");
+      return;
+    }
+    const purchased = await isToolPurchased(auth.currentUser.uid, "cover-letter");
+    setIsLocked(!purchased);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -77,6 +83,46 @@ export default function AICoverLetter() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePayment = async () => {
+    if (!auth.currentUser) {
+      navigate('/auth');
+      return;
+    }
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount: PRICING['cover-letter'].sale * 100,
+      currency: "INR",
+      name: "Internship Catalyst",
+      description: "3 Month Access to AI Cover Letter",
+      image: "https://internshipcatalyst.com/logo-og.png",
+      handler: async (response) => {
+        const success = await recordPurchase(
+          auth.currentUser.uid,
+          'cover-letter',
+          response.razorpay_payment_id
+        );
+
+        if (success) {
+          alert("AI Cover Letter Unlocked Successfully!");
+          setIsLocked(false);
+        } else {
+          alert("Something went wrong. Please contact support.");
+        }
+      },
+      prefill: {
+        name: auth.currentUser.displayName || "",
+        email: auth.currentUser.email || ""
+      },
+      theme: {
+        color: "#10b981"
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
   };
 
   const handleCopy = () => {
@@ -165,13 +211,13 @@ export default function AICoverLetter() {
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <button
-                    onClick={() => navigate('/ai-hub')}
-                    className="px-8 py-3.5 rounded-xl bg-white text-black font-black uppercase tracking-widest text-[10px] hover:bg-sky-400 transition-all shadow-xl shadow-sky-500/20 w-full sm:w-auto"
+                    onClick={handlePayment}
+                    className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black uppercase tracking-widest text-[10px] hover:shadow-xl hover:shadow-emerald-500/20 transition-all w-full sm:w-auto"
                   >
-                    Buy Access
+                    Unlock Now
                   </button>
                   <button
-                    onClick={() => navigate('/ai-hub')}
+                    onClick={() => navigate('/ai')}
                     className="px-8 py-3.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all w-full sm:w-auto"
                   >
                     Back to Hub

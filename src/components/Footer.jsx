@@ -10,7 +10,8 @@ import {
   FaPhone,
   FaMapMarkerAlt,
   FaHeart,
-  FaRocket
+  FaRocket,
+  FaWhatsapp
 } from 'react-icons/fa';
 import webpageLogo from '../assets/webpage.jpeg';
 
@@ -116,17 +117,16 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               <img src={webpageLogo} alt="IC Career Portal Logo" className="w-11 h-11 rounded-xl shadow-lg shadow-sky-500/30 object-cover" />
               <h2 className="text-2xl font-black bg-gradient-to-r from-white to-sky-200 bg-clip-text text-transparent">
-                Internship Catalyst
+                Internship <span className="text-sky-400">Catalyst</span>
               </h2>
             </div>
 
             <p className="text-sky-200 leading-relaxed max-w-sm">
-              Connecting exceptional talent with outstanding opportunities.
-              Building successful careers, one step at a time.
+              Internship Catalyst offers verified jobs, internships, professional skill courses, and AI-powered career tools to help students grow and get hired faster today.
             </p>
 
             <div className="flex gap-4 justify-center md:justify-start">
-              {[FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram, FaGithub].map(
+              {[FaInstagram, FaLinkedinIn, FaWhatsapp, FaTwitter, FaGithub].map(
                 (Icon, i) => (
                   <a
                     key={i}
