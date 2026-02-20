@@ -1,17 +1,25 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({
-  apiKey: import.meta.env.VITE_GEMINI_API_KEY || ""
-});
+const MODEL_NAME = "gemini-1.5-flash";
 
-if (!import.meta.env.VITE_GEMINI_API_KEY) {
-  console.error("VITE_GEMINI_API_KEY is missing! Please check your .env file.");
-} else {
-  console.log("Gemini AI Service Initialized");
+// Lazy initialization to prevent app crash if key is missing in production
+let aiInstance = null;
+
+function getAI() {
+  if (aiInstance) return aiInstance;
+
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      "Gemini API Key is missing! Please ensure VITE_GEMINI_API_KEY is set in your environment variables (e.g., in Vercel settings)."
+    );
+  }
+
+  aiInstance = new GoogleGenAI({ apiKey });
+  return aiInstance;
 }
 
-
-const MODEL_NAME = "gemini-1.5-flash";
 
 
 /**
@@ -60,7 +68,7 @@ RULES:
 - Be practical, modern, and industry-relevant. Think like a hiring manager at a top tech company.`;
 
   try {
-    const response = await ai.getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
+    const response = await getAI().getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
 
     const text = response.text;
     const cleaned = text.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
@@ -97,7 +105,7 @@ Return them as a comma-separated list. No markdown.`;
   }
 
   try {
-    const response = await ai.getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
+    const response = await getAI().getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
     return response.text;
   } catch (err) {
     console.error("Gemini generation error:", err);
@@ -136,7 +144,7 @@ RULES FOR THE LETTER:
 5. Keep it length-appropriate (approx 250-400 words).`;
 
   try {
-    const response = await ai.getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
+    const response = await getAI().getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
 
     const text = response.text;
     const cleaned = text.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
@@ -193,7 +201,7 @@ UNIQUE ANALYSIS RULES:
 5. If JD is empty, analyze resume for general "Elite Industry Standards" for ${currentYear}.`;
 
   try {
-    const response = await ai.getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
+    const response = await getAI().getGenerativeModel({ model: MODEL_NAME }).generateContent(prompt);
 
     const text = response.text;
     const cleaned = text.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
