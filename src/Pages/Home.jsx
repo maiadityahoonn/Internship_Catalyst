@@ -309,7 +309,7 @@ export default function Home({ defaultConfig }) {
                   words={[
                     "Web Development",
                     "AI Models",
-                    "Data Analyst",
+                    "Data Analytics",
                     "Machine Learning",
                     "UI/UX",
                     "Internships & Jobs"

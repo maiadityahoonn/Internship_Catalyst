@@ -10,8 +10,7 @@ import {
   FaPhone,
   FaMapMarkerAlt,
   FaHeart,
-  FaRocket,
-  FaWhatsapp
+  FaRocket
 } from 'react-icons/fa';
 import webpageLogo from '../assets/webpage.jpeg';
 
@@ -32,7 +31,7 @@ export default function Footer() {
       title: "Privacy Policy",
       content: (
         <div className="space-y-4 text-gray-300">
-          <p>At Internship Catalyst, we take your privacy seriously. This policy describes how we collect, use, and handle your personal information.</p>
+          <p>At IC Career Portal, we take your privacy seriously. This policy describes how we collect, use, and handle your personal information.</p>
           <ul className="list-disc pl-5 space-y-2">
             <li>We collect information you provide directly to us when you create an account or update your profile.</li>
             <li>We use your information to provide, maintain, and improve our services, including AI-powered job matching.</li>
@@ -47,7 +46,7 @@ export default function Footer() {
       title: "Terms of Service",
       content: (
         <div className="space-y-4 text-gray-300">
-          <p>By accessing or using Internship Catalyst, you agree to be bound by these Terms of Service.</p>
+          <p>By accessing or using IC Career Portal, you agree to be bound by these Terms of Service.</p>
           <ul className="list-disc pl-5 space-y-2">
             <li>You must differ to all applicable laws and regulations while using our platform.</li>
             <li>You are responsible for maintaining the security of your account credentials.</li>
@@ -74,10 +73,10 @@ export default function Footer() {
     sitemap: {
       title: "Sitemap",
       content: (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-gray-300">
+        <div className="grid grid-cols-2 gap-4 text-gray-300">
           <div>
-            <h4 className="font-bold text-white mb-2 uppercase text-xs tracking-widest">Main</h4>
-            <ul className="space-y-1 text-sm">
+            <h4 className="font-bold text-white mb-2">Main</h4>
+            <ul className="space-y-1">
               <li>Home</li>
               <li>About Us</li>
               <li>Job Opportunities</li>
@@ -85,12 +84,12 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="font-bold text-white mb-2 uppercase text-xs tracking-widest">Resources</h4>
-            <ul className="space-y-1 text-sm">
+            <h4 className="font-bold text-white mb-2">Resources</h4>
+            <ul className="space-y-1">
               <li>AI Resume Builder</li>
               <li>ATS Score Checker</li>
               <li>Skill Gap Analyzer</li>
-              <li>Cover Letter Generator</li>
+              <li>Cover Letter Gen</li>
             </ul>
           </div>
         </div>
@@ -113,20 +112,21 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-14">
 
           {/* BRAND */}
-          <div className="space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
+          <div className="space-y-6">
             <div className="flex items-center gap-3">
               <img src={webpageLogo} alt="IC Career Portal Logo" className="w-11 h-11 rounded-xl shadow-lg shadow-sky-500/30 object-cover" />
               <h2 className="text-2xl font-black bg-gradient-to-r from-white to-sky-200 bg-clip-text text-transparent">
-                Internship <span className="text-sky-400">Catalyst</span>
+                IC Career Portal
               </h2>
             </div>
 
-            <p className="text-sky-200 leading-relaxed max-w-sm">
-              Internship Catalyst offers verified jobs, internships, professional skill courses, and AI-powered career tools to help students grow and get hired faster today.
+            <p className="text-sky-200 leading-relaxed">
+              Connecting exceptional talent with outstanding opportunities.
+              Building successful careers, one step at a time.
             </p>
 
-            <div className="flex gap-4 justify-center md:justify-start">
-              {[FaInstagram, FaLinkedinIn, FaWhatsapp, FaTwitter, FaGithub].map(
+            <div className="flex gap-4">
+              {[FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram, FaGithub].map(
                 (Icon, i) => (
                   <a
                     key={i}
@@ -145,7 +145,7 @@ export default function Footer() {
           </div>
 
           {/* QUICK LINKS */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-left">
+          <div>
             <h3 className="text-xl font-bold text-white mb-6 border-b border-sky-500/30 inline-block pb-2">
               Quick Links
             </h3>
@@ -154,7 +154,7 @@ export default function Footer() {
                 ["Home", "/"],
                 ["About", "/about"],
                 ["Job Opportunities", "/jobs"],
-                ["AI Powered Tools", "/ai"],
+                ["All Resources", "/resources"],
                 ["Premium Courses", "/courses"],
                 ["Events & Hackathons", "/events"]
               ].map(([name, path], i) => (
@@ -163,6 +163,7 @@ export default function Footer() {
                     to={path}
                     className="text-sky-200 hover:text-white transition-all duration-300 hover:translate-x-2 inline-flex items-center gap-2"
                   >
+                    <span className="w-2 h-2 rounded-full bg-sky-500 opacity-0 group-hover:opacity-100"></span>
                     {name}
                   </Link>
                 </li>
@@ -170,17 +171,17 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* AI Powered Tools */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-left">
+          {/* RESOURCES */}
+          <div>
             <h3 className="text-xl font-bold text-white mb-6 border-b border-sky-500/30 inline-block pb-2">
-              AI Powered Tools
+              Resources
             </h3>
             <ul className="space-y-4">
               {[
-                ["AI Resume Builder", "/ai"],
-                ["ATS Score Checker", "/ai"],
-                ["Skill Gap Analyzer", "/ai"],
-                ["Cover Letter Generator", "/ai"],
+                ["AI Resume Builder", "/ai-cv-builder"],
+                ["ATS Score Checker", "/ats-score-checker"],
+                ["AI Skill Gap Analyzer", "/skill-gap-analyzer"],
+                ["AI Cover Letter Generator", "/cover-letter-ai"],
               ].map(([name, path], i) => (
                 <li key={i}>
                   <Link
@@ -195,23 +196,23 @@ export default function Footer() {
           </div>
 
           {/* CONTACT */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-left">
+          <div>
             <h3 className="text-xl font-bold text-white mb-6 border-b border-sky-500/30 inline-block pb-2">
               Contact Us
             </h3>
 
             <ul className="space-y-5 text-sky-200">
-              <li className="flex gap-3 justify-center md:justify-start">
-                <FaEnvelope className="text-sky-400 mt-1 shrink-0" />
-                <span>contact@internshipcatalyst.com</span>
+              <li className="flex gap-3">
+                <FaEnvelope className="text-sky-400 mt-1" />
+                support@iccareer.com
               </li>
-              <li className="flex gap-3 justify-center md:justify-start">
-                <FaPhone className="text-sky-400 mt-1 shrink-0" />
-                <span>+91 74628 27259</span>
+              <li className="flex gap-3">
+                <FaPhone className="text-sky-400 mt-1" />
+                +91 12345 67890
               </li>
-              <li className="flex gap-3 justify-center md:justify-start">
-                <FaMapMarkerAlt className="text-sky-400 mt-1 shrink-0" />
-                <span>Indrapuri, Bhopal, MP-462022</span>
+              <li className="flex gap-3">
+                <FaMapMarkerAlt className="text-sky-400 mt-1" />
+                Tech Park, Sector 62, Noida
               </li>
             </ul>
           </div>
@@ -221,10 +222,10 @@ export default function Footer() {
         <div className="pt-8 border-t border-sky-500/10 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <p className="text-sky-300">
-              © 2025 Internship Catalyst. All rights reserved.
+              © {currentYear} IC Career Portal. All rights reserved.
             </p>
             <p className="text-sky-200/70 text-sm mt-1">
-              Empowering careers worldwide <FaHeart className="inline text-red-400 ml-1 animate-pulse" />
+              Empowering careers worldwide <FaHeart className="inline text-red-400 ml-1" />
             </p>
           </div>
 
