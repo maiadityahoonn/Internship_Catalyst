@@ -10,7 +10,8 @@ import {
   FaPhone,
   FaMapMarkerAlt,
   FaHeart,
-  FaRocket
+  FaRocket,
+  FaMobile
 } from 'react-icons/fa';
 import webpageLogo from '../assets/webpage.jpeg';
 
@@ -206,7 +207,7 @@ export default function Footer() {
                 <span>contact@internshipcatalyst.com</span>
               </li>
               <li className="flex gap-3 justify-center md:justify-start">
-                <FaPhone className="text-sky-400 mt-1 shrink-0" />
+                <FaMobile className="text-sky-400 mt-1 shrink-0" />
                 <span>+91 74628 27259</span>
               </li>
               <li className="flex gap-3 justify-center md:justify-start">
@@ -221,7 +222,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-sky-500/10 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <p className="text-sky-300">
-              © 2025 Internship Catalyst. All rights reserved.
+              © {currentYear} Internship Catalyst. All rights reserved.
             </p>
             <p className="text-sky-200/70 text-sm mt-1">
               Empowering careers worldwide <FaHeart className="inline text-red-400 ml-1 animate-pulse" />
