@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+// import { GoogleGenAI } from "@google/genai";
 
 const MODEL_NAME = "gemini-1.5-flash";
 
