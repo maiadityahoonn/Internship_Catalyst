@@ -4,6 +4,7 @@ import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, where
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 import {
     FaBriefcase,
     FaGraduationCap,
@@ -19,7 +20,11 @@ import {
     FaUserShield,
     FaEnvelope,
     FaUser,
-    FaSignOutAlt
+    FaSignOutAlt,
+    FaEdit,
+    FaEye,
+    FaThumbtack,
+    FaRegImage
 } from 'react-icons/fa';
 
 // --- Custom Chart Components (Since recharts is not available) ---
@@ -74,6 +79,8 @@ export default function AdminDashboard() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [userInteractions, setUserInteractions] = useState([]);
     const [userInteractionsLoading, setUserInteractionsLoading] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingId, setEditingId] = useState(null);
     const navigate = useNavigate();
 
     // Form State
@@ -108,6 +115,10 @@ export default function AdminDashboard() {
     // Data Fetching Router
     useEffect(() => {
         setLoading(true);
+        setShowForm(false);
+        setIsEditing(false);
+        setEditingId(null);
+        setFormData({});
         if (activeTab === 'users') {
             fetchUsers();
         } else if (activeTab === 'analytics') {
@@ -236,17 +247,53 @@ export default function AdminDashboard() {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    const handleEdit = (item) => {
+        setFormData(item);
+        setIsEditing(true);
+        setEditingId(item.id);
+        setShowForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const cleanFormData = Object.fromEntries(Object.entries(formData).filter(([_, v]) => v != null && v !== ''));
-            const payload = { ...cleanFormData, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdBy: user.uid };
-            await addDoc(collection(db, activeTab), payload);
-            alert('Item added successfully!');
+            const payload = {
+                ...cleanFormData,
+                updatedAt: serverTimestamp()
+            };
+
+            if (isEditing) {
+                await updateDoc(doc(db, activeTab, editingId), payload);
+                alert('Item updated successfully!');
+            } else {
+                const finalPayload = {
+                    ...payload,
+                    createdAt: serverTimestamp(),
+                    createdBy: user.uid
+                };
+                await addDoc(collection(db, activeTab), finalPayload);
+                alert('Item added successfully!');
+            }
+
             setShowForm(false);
             setFormData({});
+            setIsEditing(false);
+            setEditingId(null);
         } catch (error) {
-            alert("Error adding item: " + error.message);
+            alert("Error saving item: " + error.message);
+        }
+    };
+
+    const toggleFeatured = async (id, currentStatus) => {
+        try {
+            await updateDoc(doc(db, activeTab, id), {
+                isFeatured: !currentStatus,
+                updatedAt: serverTimestamp()
+            });
+        } catch (error) {
+            alert("Error updating featured status: " + error.message);
         }
     };
 
@@ -404,7 +451,14 @@ export default function AdminDashboard() {
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-900/40 p-4 rounded-2xl border border-white/5 backdrop-blur-sm">
                 <p className="text-slate-400 text-sm">Managing: <span className="text-white font-bold capitalize">{activeTab}</span></p>
                 <button
-                    onClick={() => setShowForm(!showForm)}
+                    onClick={() => {
+                        setShowForm(!showForm);
+                        if (showForm) {
+                            setIsEditing(false);
+                            setEditingId(null);
+                            setFormData({});
+                        }
+                    }}
                     className={`flex items-center gap-2 px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-bold transition-all shadow-lg shadow-sky-500/20 text-sm ${activeTab === 'events' ? 'hidden' : ''}`}
                 >
                     {showForm ? <FaTimes /> : <FaPlus />} {showForm ? 'Close' : 'Add New'}
@@ -421,7 +475,7 @@ export default function AdminDashboard() {
                         className="overflow-hidden"
                     >
                         <div className="bg-slate-800/60 backdrop-blur-xl border border-slate-700 rounded-2xl p-6 shadow-2xl mb-8">
-                            <h2 className="text-xl font-bold text-white mb-6">Add New {activeTab.slice(0, -1)}</h2>
+                            <h2 className="text-xl font-bold text-white mb-6">{isEditing ? `Edit ${activeTab.slice(0, -1)}` : `Add New ${activeTab.slice(0, -1)}`}</h2>
                             <form onSubmit={handleSubmit}>
                                 {/* Reuse previous renderFormFields logic here, simplified for brevity in this replace block. 
                                    In a real scenario, I'd keep the renderFormFields function or componentize it. 
@@ -429,7 +483,7 @@ export default function AdminDashboard() {
                                 */}
                                 {renderFormFields()}
                                 <button type="submit" className="mt-6 w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity">
-                                    Publish to Database
+                                    {isEditing ? 'Update in Database' : 'Publish to Database'}
                                 </button>
                             </form>
                         </div>
@@ -441,13 +495,51 @@ export default function AdminDashboard() {
                 {loading ? <p className="text-center col-span-full">Loading...</p> : paginatedItems.map((item) => (
                     <motion.div layout key={item.id} className="group relative bg-[#0f172a]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-6 hover:border-white/20 transition-all hover:-translate-y-1">
                         <div className="flex justify-between items-start mb-4">
-                            <div>
+                            <div className="flex-1">
                                 <h3 className="text-lg font-bold text-white line-clamp-1">{item.title}</h3>
                                 <div className="text-xs text-sky-400 font-bold uppercase tracking-wider mt-1">{item.company || item.category}</div>
+                                <div className="text-[10px] text-slate-500 mt-2 flex flex-wrap gap-2">
+                                    <span className="bg-white/5 px-2 py-0.5 rounded-full">{item.location || 'Remote'}</span>
+                                    <span className="bg-white/5 px-2 py-0.5 rounded-full">{item.officeType || 'Full-time'}</span>
+                                </div>
                             </div>
-                            <button onClick={() => activeTab === 'events' ? (setSelectedModerationItem(item), setShowModerationModal(true)) : handleAction(item.id, 'reject')} className="p-2 bg-white/5 hover:bg-rose-500 hover:text-white rounded-lg transition-colors text-slate-400">
-                                {activeTab === 'events' ? <FaCheck /> : <FaTrash />}
-                            </button>
+                            <div className="flex gap-2">
+                                {activeTab !== 'moderation' && activeTab !== 'users' && (
+                                    <button
+                                        onClick={() => toggleFeatured(item.id, item.isFeatured)}
+                                        className={`p-2 rounded-lg transition-colors ${item.isFeatured ? 'bg-amber-500/20 text-amber-500' : 'bg-white/5 text-slate-400 hover:bg-amber-500/10 hover:text-amber-500'}`}
+                                        title={item.isFeatured ? "Unpin from Top" : "Pin to Top"}
+                                    >
+                                        <FaThumbtack size={12} className={item.isFeatured ? '' : '-rotate-45'} />
+                                    </button>
+                                )}
+                                {activeTab !== 'moderation' && activeTab !== 'events' && activeTab !== 'users' && (
+                                    <button
+                                        onClick={() => handleEdit(item)}
+                                        className="p-2 bg-sky-500/10 hover:bg-sky-500 hover:text-white rounded-lg transition-colors text-sky-400"
+                                        title="Edit Item"
+                                    >
+                                        <FaEdit size={14} />
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => {
+                                        setSelectedModerationItem(item);
+                                        setShowModerationModal(true);
+                                    }}
+                                    className="p-2 bg-white/5 hover:bg-indigo-500 hover:text-white rounded-lg transition-colors text-slate-400"
+                                    title="View Details"
+                                >
+                                    <FaEye size={14} />
+                                </button>
+                                <button
+                                    onClick={() => handleAction(item.id, 'reject')}
+                                    className="p-2 bg-white/5 hover:bg-rose-500 hover:text-white rounded-lg transition-colors text-slate-400"
+                                    title="Delete Item"
+                                >
+                                    <FaTrash size={14} />
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 ))}
@@ -720,18 +812,85 @@ export default function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Content Moderation Modal */}
+                {/* Content Moderation & Details Modal */}
                 <AnimatePresence>
                     {showModerationModal && selectedModerationItem && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                            <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 max-w-2xl w-full">
-                                <h2 className="text-2xl font-bold mb-4">{selectedModerationItem.title}</h2>
-                                <p className="text-slate-400 mb-8">{selectedModerationItem.description}</p>
-                                <div className="flex gap-4">
-                                    <button onClick={() => handleAction(selectedModerationItem.id, 'approve')} className="flex-1 py-3 bg-emerald-500 rounded-xl font-bold">Approve</button>
-                                    <button onClick={() => setShowModerationModal(false)} className="flex-1 py-3 bg-white/10 rounded-xl font-bold">Close</button>
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                className="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative"
+                            >
+                                <button
+                                    onClick={() => setShowModerationModal(false)}
+                                    className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 transition-colors"
+                                >
+                                    <FaTimes />
+                                </button>
+
+                                <div className="flex flex-col sm:flex-row gap-6 mb-8">
+                                    <div className="w-24 h-24 rounded-2xl bg-black/50 flex items-center justify-center text-4xl border border-white/10 overflow-hidden">
+                                        {selectedModerationItem.posterLink || selectedModerationItem.companyLogo ? (
+                                            <img
+                                                src={getOptimizedImageUrl(selectedModerationItem.posterLink || selectedModerationItem.companyLogo, { w: 100, h: 100 })}
+                                                alt="preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <FaRegImage className="text-slate-600" />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-[10px] font-black uppercase tracking-widest mb-4">
+                                            {activeTab === 'moderation' ? 'Pending Approval' : activeTab.slice(0, -1)} Details
+                                        </div>
+                                        <h2 className="text-3xl font-black text-white mb-2">{selectedModerationItem.title}</h2>
+                                        <p className="text-sky-400 font-bold">{selectedModerationItem.company || selectedModerationItem.category}</p>
+                                    </div>
                                 </div>
-                            </div>
+
+                                <div className="grid grid-cols-2 gap-4 mb-8">
+                                    {Object.entries(selectedModerationItem).map(([key, value]) => {
+                                        if (['id', 'title', 'description', 'createdAt', 'updatedAt', 'createdBy'].includes(key)) return null;
+                                        if (typeof value === 'object' && value !== null) return null;
+                                        return (
+                                            <div key={key} className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-wider mb-1">{key.replace(/([A-Z])/g, ' $1')}</p>
+                                                <p className="text-sm text-white font-bold truncate">{value?.toString() || 'N/A'}</p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="space-y-4 mb-8">
+                                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Full Description</h3>
+                                    <div className="bg-white/5 p-6 rounded-2xl border border-white/5 text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
+                                        {selectedModerationItem.description || 'No description provided.'}
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4">
+                                    {(activeTab === 'moderation' || (activeTab === 'events' && selectedModerationItem.status === 'pending')) && (
+                                        <button
+                                            onClick={() => handleAction(selectedModerationItem.id, 'approve')}
+                                            className="flex-1 py-4 bg-emerald-500 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20"
+                                        >
+                                            Approve Event
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm('Are you sure you want to delete this item permanently?')) {
+                                                handleAction(selectedModerationItem.id, 'reject');
+                                            }
+                                        }}
+                                        className="flex-1 py-4 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-2xl font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all"
+                                    >
+                                        Delete Item
+                                    </button>
+                                </div>
+                            </motion.div>
                         </div>
                     )}
                 </AnimatePresence>

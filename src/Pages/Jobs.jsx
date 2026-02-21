@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
 import { db, auth } from '../firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 import {
   Search,
   MapPin,
@@ -47,6 +49,14 @@ export default function Jobs() {
         id: doc.id,
         ...doc.data()
       }));
+
+      // Subtle Sort: Featured first, then by date
+      data.sort((a, b) => {
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        return (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0);
+      });
+
       setJobs(data);
       setLoading(false);
     }, (error) => {
@@ -117,6 +127,7 @@ export default function Jobs() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white pt-24 md:pt-32 pb-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-sky-500/30 overflow-x-hidden">
+      <SEO title="Jobs" />
 
       <div className="max-w-7xl mx-auto">
 
@@ -265,8 +276,16 @@ export default function Jobs() {
                 {/* Top Section */}
                 <div className="p-6 relative z-10">
                   <div className="flex justify-between items-start mb-4">
-                    <div className="w-14 h-14 rounded-2xl bg-[#1e293b] flex items-center justify-center text-3xl shadow-inner border border-white/10 group-hover:shadow-sky-500/20 transition-all">
-                      {job.companyLogo || <Building2 className="text-slate-400 group-hover:text-sky-400 transition-colors w-7 h-7" />}
+                    <div className="w-14 h-14 rounded-2xl bg-[#1e293b] flex items-center justify-center text-3xl shadow-inner border border-white/10 group-hover:shadow-sky-500/20 transition-all overflow-hidden">
+                      {job.companyLogo ? (
+                        <img
+                          src={getOptimizedImageUrl(job.companyLogo, { w: 100, h: 100 })}
+                          alt={job.company}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Building2 className="text-slate-400 group-hover:text-sky-400 transition-colors w-7 h-7" />
+                      )}
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${job.officeType === 'remote' ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-400' :
@@ -402,8 +421,16 @@ export default function Jobs() {
 
               <div className="p-6 sm:p-8 md:p-10">
                 <div className="flex flex-col sm:flex-row gap-6 mb-8">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#1e293b] flex items-center justify-center text-3xl sm:text-4xl border border-white/10 shrink-0">
-                    {selectedJobForDetails.companyLogo || <Building2 className="text-sky-500 w-8 h-8 sm:w-10 sm:h-10" />}
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#1e293b] flex items-center justify-center text-3xl sm:text-4xl border border-white/10 shrink-0 overflow-hidden">
+                    {selectedJobForDetails.companyLogo ? (
+                      <img
+                        src={getOptimizedImageUrl(selectedJobForDetails.companyLogo, { w: 200, h: 200 })}
+                        alt={selectedJobForDetails.company}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Building2 className="text-sky-500 w-8 h-8 sm:w-10 sm:h-10" />
+                    )}
                   </div>
                   <div>
                     <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">{selectedJobForDetails.title}</h2>

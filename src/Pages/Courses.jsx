@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import SEO from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db, auth } from '../firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -59,6 +60,7 @@ export default function Courses() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white selection:bg-sky-500/30 overflow-x-hidden font-sans pt-32 pb-12 px-4 sm:px-6 lg:px-8">
+      <SEO title="Courses" />
       {/* Background Decorative Elements */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-sky-500/10 blur-[120px] rounded-full animate-pulse"></div>

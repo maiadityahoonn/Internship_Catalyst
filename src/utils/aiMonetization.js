@@ -32,25 +32,24 @@ export const PRICING = {
  */
 export const isToolPurchased = async (userId, toolId) => {
     if (!userId) return false;
-    if (toolId === 'ai-resume') return true;
+    if (PRICING[toolId]?.sale === 0) return true; // Always free tools
 
     try {
-        const purchaseRef = doc(db, 'users', userId, 'ai_purchases', toolId);
-        const purchaseSnap = await getDoc(purchaseRef);
+        const docRef = doc(db, 'users', userId, 'ai_purchases', toolId);
+        const docSnap = await getDoc(docRef);
 
-        if (purchaseSnap.exists()) {
-            const data = purchaseSnap.data();
+        if (docSnap.exists()) {
+            const data = docSnap.data();
             const expiresAt = data.expiresAt?.toDate();
 
-            // If expired, access revoked
-            if (expiresAt && expiresAt < new Date()) {
-                return false;
+            // Check if purchase is still within 3-month window
+            if (expiresAt && expiresAt > new Date()) {
+                return true;
             }
-            return true;
         }
         return false;
     } catch (error) {
-        console.error("Error checking tool access:", error);
+        console.error("Error checking purchase status:", error);
         return false;
     }
 };
