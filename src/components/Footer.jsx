@@ -10,7 +10,8 @@ import {
   FaPhone,
   FaMapMarkerAlt,
   FaHeart,
-  FaRocket
+  FaRocket,
+  FaMobile
 } from 'react-icons/fa';
 import webpageLogo from '../assets/webpage.jpeg';
 
@@ -207,7 +208,7 @@ export default function Footer() {
                 support@iccareer.com
               </li>
               <li className="flex gap-3">
-                <FaPhone className="text-sky-400 mt-1" />
+                <FaMobile className="text-sky-400 mt-1" />
                 +91 12345 67890
               </li>
               <li className="flex gap-3">
