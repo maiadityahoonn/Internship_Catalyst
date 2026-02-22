@@ -1,6 +1,6 @@
 // import { GoogleGenAI } from "@google/genai";
 
-const MODEL_NAME = "gemini-1.5-flash";
+const MODEL_NAME = "gemini-3-flash-preview";
 
 // Lazy initialization to prevent app crash if key is missing in production
 let aiInstance = null;
@@ -63,8 +63,8 @@ Respond ONLY with a valid JSON object (no markdown, no code fences, no extra tex
 RULES:
 - matchedSkills: only include skills from the user's list that are relevant to the target role.
 - missingSkills: list 4-8 skills the candidate needs but doesn't have. Be specific (e.g., "React.js" not just "JavaScript framework").
-- roadmap: provide exactly 4 phases (e.g., Week 1-2, Week 3-4, Week 5-6, Week 7-8).
-- projectIdeas: suggest exactly 3 unique, real-world projects that would help fill the gap.
+- roadmap: provide exactly 4-8 phases (e.g., Week 1-2, Week 3-4, Week 5-6, Week 7-8).
+- projectIdeas: suggest exactly 3-6 unique, real-world projects that would help fill the gap.
 - Be practical, modern, and industry-relevant. Think like a hiring manager at a top tech company.`;
 
   try {
