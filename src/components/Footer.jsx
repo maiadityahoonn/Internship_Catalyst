@@ -78,19 +78,19 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-white mb-2">Main</h4>
             <ul className="space-y-1">
-              <li>Home</li>
-              <li>About Us</li>
-              <li>Job Opportunities</li>
-              <li>Events</li>
+              <li><Link to="/" className="hover:text-sky-400 transition-colors">Home</Link></li>
+              <li><Link to="/about" className="hover:text-sky-400 transition-colors">About Us</Link></li>
+              <li><Link to="/jobs" className="hover:text-sky-400 transition-colors">Job Opportunities</Link></li>
+              <li><Link to="/events" className="hover:text-sky-400 transition-colors">Events</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold text-white mb-2">Resources</h4>
             <ul className="space-y-1">
-              <li>AI Resume Builder</li>
-              <li>ATS Score Checker</li>
-              <li>Skill Gap Analyzer</li>
-              <li>Cover Letter Gen</li>
+              <li><Link to="/ai-resume-templates" className="hover:text-sky-400 transition-colors">AI Resume Builder</Link></li>
+              <li><Link to="/ats-score-checker" className="hover:text-sky-400 transition-colors">ATS Score Checker</Link></li>
+              <li><Link to="/skill-gap-analyzer" className="hover:text-sky-400 transition-colors">Skill Gap Analyzer</Link></li>
+              <li><Link to="/cover-letter-ai" className="hover:text-sky-400 transition-colors">Cover Letter Gen</Link></li>
             </ul>
           </div>
         </div>
@@ -179,7 +179,7 @@ export default function Footer() {
             </h3>
             <ul className="space-y-4">
               {[
-                ["AI Resume Builder", "/ai-cv-builder"],
+                ["AI Resume Builder", "/ai-resume-templates"],
                 ["ATS Score Checker", "/ats-score-checker"],
                 ["AI Skill Gap Analyzer", "/skill-gap-analyzer"],
                 ["AI Cover Letter Generator", "/cover-letter-ai"],
@@ -205,11 +205,11 @@ export default function Footer() {
             <ul className="space-y-5 text-sky-200">
               <li className="flex gap-3">
                 <FaEnvelope className="text-sky-400 mt-1" />
-                support@iccareer.com
+                contact@internshipcatalyst.com
               </li>
               <li className="flex gap-3">
                 <FaMobile className="text-sky-400 mt-1" />
-                +91 12345 67890
+                +91 74628 27259
               </li>
               <li className="flex gap-3">
                 <FaMapMarkerAlt className="text-sky-400 mt-1" />
