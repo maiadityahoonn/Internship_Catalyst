@@ -18,7 +18,6 @@ import {
   FaGoogle,
   FaAmazon,
   FaMicrosoft,
-  FaFacebook,
   FaVideo,
   FaBullhorn,
 } from 'react-icons/fa';
@@ -70,7 +69,6 @@ function ParticlePoints() {
 
     ctx.font = "bold 48px Arial";
     ctx.fillText("Internship Catalyst", 250, 175);
-
     const data = ctx.getImageData(0, 0, 500, 300).data;
     const pts = [];
 
@@ -180,13 +178,14 @@ function ParticlePoints() {
           size={0.035}
           color={hovered ? "#facc15" : "#c7d2fe"}
           transparent
-          opacity={0.6}   // dim like sphere
+          opacity={0.6}
           depthWrite={false}
         />
       </points>
     </group>
   );
 }
+
 function ParticleSphere() {
   const [cameraZ, setCameraZ] = useState(8);
 
@@ -194,11 +193,13 @@ function ParticleSphere() {
     const handleResize = () => {
       const width = window.innerWidth;
       if (width < 500) {
-        setCameraZ(7.5); // Much closer/larger for mobile
-      } else if (width < 800) {
-        setCameraZ(11);
+        setCameraZ(7.5); // Mobile
+      } else if (width < 768) {
+        setCameraZ(9); // Small tablet
+      } else if (width < 1024) {
+        setCameraZ(10); // Tablet
       } else {
-        setCameraZ(8);
+        setCameraZ(8); // Desktop
       }
     };
 
@@ -214,6 +215,7 @@ function ParticleSphere() {
     </Canvas>
   );
 }
+
 // HOME
 export default function Home({ defaultConfig }) {
   const [heroTitle, setHeroTitle] = useState(defaultConfig?.hero_title);
@@ -286,25 +288,25 @@ export default function Home({ defaultConfig }) {
       <SEO />
 
       {/* ================= HERO ================= */}
-      <section className="relative min-h-screen flex items-center pt-24 pb-12 px-6 overflow-hidden">
+      <section className="relative min-h-screen flex items-center pt-24 pb-12 px-4 sm:px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-sky-900/20 via-black to-black" />
 
-        <div className="relative max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="relative max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
 
           {/* TEXT */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9 }}
-            className="text-center lg:text-left z-10 w-full"
+            className="text-center lg:text-left z-10 w-full px-2"
           >
-            <h1 className="text-[1.75rem] xs:text-3xl sm:text-5xl md:text-5xl lg:text-6xl font-extrabold leading-tight bg-gradient-to-r from-white via-sky-300 to-white bg-clip-text text-transparent mb-6 pb-2 px-2">
+            <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight bg-gradient-to-r from-white via-sky-300 to-white bg-clip-text text-transparent mb-4 md:mb-6 pb-2">
               Your Career Journey Starts Here
             </h1>
 
-            <h2 className="mt-4 text-lg xs:text-xl sm:text-2xl lg:text-4xl font-bold leading-snug text-white">
+            <h2 className="mt-3 md:mt-4 text-base xs:text-lg sm:text-xl md:text-2xl lg:text-4xl font-bold leading-snug text-white">
               Launch your Career in
-              <span className="block mt-1 text-sky-400 font-extrabold">
+              <span className="block mt-1 text-sky-400 font-extrabold text-lg sm:text-xl md:text-2xl lg:text-4xl">
                 <Typewriter
                   words={[
                     "Web Development",
@@ -324,15 +326,15 @@ export default function Home({ defaultConfig }) {
               </span>
             </h2>
 
-            <p className="mt-6 text-sm sm:text-base lg:text-lg text-sky-200 max-w-xl mx-auto lg:mx-0 px-4 sm:px-0 opacity-80">
+            <p className="mt-4 md:mt-6 text-xs sm:text-sm md:text-base lg:text-lg text-sky-200 max-w-xl mx-auto lg:mx-0 px-2 sm:px-0 opacity-80">
               We provide courses, internships, and AI-powered tools to help you
               enhance your skills and get ready for your dream jobs.
             </p>
 
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start">
+            <div className="mt-6 md:mt-10 flex flex-col sm:flex-row gap-3 md:gap-4 items-center justify-center lg:justify-start">
               <Link
                 to="/jobs"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-sky-500 hover:bg-sky-400 transition shadow-[0_0_20px_rgba(14,165,233,0.3)] font-bold uppercase tracking-widest text-xs"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-sky-500 hover:bg-sky-400 transition shadow-[0_0_20px_rgba(14,165,233,0.3)] font-bold uppercase tracking-widest text-xs sm:text-sm"
               >
                 <FaSearch size={14} />
                 Explore Opportunities
@@ -346,7 +348,7 @@ export default function Home({ defaultConfig }) {
               y: window.innerWidth < 768 ? 0 : sphereY,
               scale: sphereScale
             }}
-            className="relative w-full h-[300px] md:h-[500px] lg:mt-0"
+            className="relative w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[500px] lg:mt-0"
           >
             <ParticleSphere />
           </motion.div>
@@ -355,8 +357,8 @@ export default function Home({ defaultConfig }) {
       </section>
 
       {/* ================= STATS ================= */}
-      <section className="py-12 md:py-20 max-w-6xl mx-auto px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+      <section className="py-8 md:py-12 lg:py-20 max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           {[
             { icon: <FaBriefcase />, value: stats.jobs, label: 'Jobs' },
             { icon: <FaGraduationCap />, value: stats.internships, label: 'Internships' },
@@ -369,35 +371,35 @@ export default function Home({ defaultConfig }) {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-black/30 backdrop-blur-md border border-sky-500/20 rounded-2xl p-4 sm:p-6 text-center"
+              className="bg-black/30 backdrop-blur-md border border-sky-500/20 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 text-center"
             >
-              <div className="text-2xl sm:text-3xl text-sky-400 mb-2 flex justify-center">{s.icon}</div>
-              <div className="text-xl sm:text-2xl md:text-4xl font-black">{s.value}+</div>
-              <div className="text-sky-200/70 text-[10px] sm:text-sm md:text-base uppercase tracking-widest">{s.label}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl text-sky-400 mb-1 sm:mb-2 flex justify-center">{s.icon}</div>
+              <div className="text-lg sm:text-xl md:text-2xl lg:text-4xl font-black">{s.value}+</div>
+              <div className="text-sky-200/70 text-[8px] sm:text-xs md:text-sm lg:text-base uppercase tracking-widest">{s.label}</div>
             </motion.div>
           ))}
         </div>
       </section>
-      {/* COURSES & EVENTS OR HACKTHON */}
 
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl sm:text-4xl font-black text-white mb-4 uppercase tracking-tight">Kick Your Journey With Us</h2>
-          <p className="text-sm sm:text-xl text-sky-200/60 max-w-2xl mx-auto">Everything you need to launch your career, powered by IC</p>
+      {/* COURSES & EVENTS OR HACKTHON */}
+      <section className="py-10 md:py-16 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-8 md:mb-10 lg:mb-14">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2 md:mb-4 uppercase tracking-tight">Kick Your Journey With Us</h2>
+          <p className="text-xs sm:text-sm md:text-base lg:text-xl text-sky-200/60 max-w-2xl mx-auto px-4">Everything you need to launch your career, powered by IC</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
           {[
             { icon: <FaRobot />, title: "Internships", description: "Start your journey & Learn with top MNC Companies.", link: "/Internships", linkText: "Interships" },
             { icon: <FaChartLine />, title: "Jobs", description: "All the latest Updates Related to Top MNC's Companies here job and vacancies are here stay connect with us.", link: "/jobs", linkText: "View Jobs" },
             { icon: <FaLaptopCode />, title: "Premium Courses", description: "Upskill with courses designed to make you job-ready.", link: "/courses", linkText: "View Courses" },
             { icon: <FaCalendarAlt />, title: "Events & Hackathons", description: "Stay updated with career fairs, networking events & coding competitions.", link: "/events", linkText: "Explore Events" }
           ].map((feature, i) => (
-            <div key={i} className="group bg-black/30 backdrop-blur-lg rounded-2xl border border-sky-500/20 p-6 flex flex-col transition-all duration-300 hover:bg-black/40 hover:border-sky-500/30 hover:shadow-xl hover:shadow-sky-500/20 hover:-translate-y-2">
-              <div className="w-16 h-16 rounded-full bg-sky-500/20 flex items-center justify-center text-2xl text-sky-300 mb-5 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
-              <h3 className="text-2xl font-bold text-white mb-3">{feature.title}</h3>
-              <p className="text-sky-200 flex-grow mb-5">{feature.description}</p>
-              <Link to={feature.link} className="inline-flex items-center gap-2 text-sky-300 font-semibold hover:text-sky-200 transition-colors duration-300">
+            <div key={i} className="group bg-black/30 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-sky-500/20 p-4 sm:p-5 md:p-6 flex flex-col transition-all duration-300 hover:bg-black/40 hover:border-sky-500/30 hover:shadow-xl hover:shadow-sky-500/20 hover:-translate-y-2">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-sky-500/20 flex items-center justify-center text-xl sm:text-2xl text-sky-300 mb-3 sm:mb-4 md:mb-5 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-3">{feature.title}</h3>
+              <p className="text-xs sm:text-sm md:text-base text-sky-200 flex-grow mb-3 sm:mb-4 md:mb-5">{feature.description}</p>
+              <Link to={feature.link} className="inline-flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-sky-300 font-semibold hover:text-sky-200 transition-colors duration-300">
                 {feature.linkText} <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
             </div>
@@ -406,38 +408,39 @@ export default function Home({ defaultConfig }) {
       </section>
 
       {/* ================= FEATURES ================= */}
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
-          <h2 className="text-4xl font-black text-white mb-4">Powerful Career Tools</h2>
-          <p className="text-xl text-sky-200 max-w-2xl mx-auto">Everything you need to launch your career, powered by AI</p>
+      <section className="py-10 md:py-16 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-8 md:mb-10 lg:mb-14">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2 md:mb-4">Powerful Career Tools</h2>
+          <p className="text-xs sm:text-sm md:text-base lg:text-xl text-sky-200 max-w-2xl mx-auto px-4">Everything you need to launch your career, powered by AI</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
           {[
             { icon: <FaRobot />, title: "AI Resume Builder", description: "Create ATS-optimized resumes with AI suggestions.", link: "/ai", linkText: "Build Resume" },
             { icon: <FaChartLine />, title: "ATS Score Checker", description: "Get instant feedback on your resume's ATS compatibility.", link: "/ai", linkText: "Check Score" },
             { icon: <FaLaptopCode />, title: "Skill Gap Analyzer", description: "Upskill with courses designed to make you a responsive ChatBot.", link: "/ai", linkText: "Skill Analyze" },
             { icon: <FaCalendarAlt />, title: "Cover Letter Generator", description: "Stay updated with career fairs,We stand with you for your bright future.", link: "/ai", linkText: "Cover Letter" }
           ].map((feature, i) => (
-            <div key={i} className="group bg-black/30 backdrop-blur-lg rounded-2xl border border-sky-500/20 p-6 flex flex-col transition-all duration-300 hover:bg-black/40 hover:border-sky-500/30 hover:shadow-xl hover:shadow-sky-500/20 hover:-translate-y-2">
-              <div className="w-16 h-16 rounded-full bg-sky-500/20 flex items-center justify-center text-2xl text-sky-300 mb-5 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
-              <h3 className="text-2xl font-bold text-white mb-3">{feature.title}</h3>
-              <p className="text-sky-200 flex-grow mb-5">{feature.description}</p>
-              <Link to={feature.link} className="inline-flex items-center gap-2 text-sky-300 font-semibold hover:text-sky-200 transition-colors duration-300">
+            <div key={i} className="group bg-black/30 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-sky-500/20 p-4 sm:p-5 md:p-6 flex flex-col transition-all duration-300 hover:bg-black/40 hover:border-sky-500/30 hover:shadow-xl hover:shadow-sky-500/20 hover:-translate-y-2">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-sky-500/20 flex items-center justify-center text-xl sm:text-2xl text-sky-300 mb-3 sm:mb-4 md:mb-5 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-3">{feature.title}</h3>
+              <p className="text-xs sm:text-sm md:text-base text-sky-200 flex-grow mb-3 sm:mb-4 md:mb-5">{feature.description}</p>
+              <Link to={feature.link} className="inline-flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-sky-300 font-semibold hover:text-sky-200 transition-colors duration-300">
                 {feature.linkText} <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
             </div>
           ))}
         </div>
       </section>
+
       {/* ================= HOW IT WORKS ================= */}
-      <section className="py-16 md:py-20 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-4xl font-black mb-4">How It Works</h2>
-          <p className="text-sky-200 text-lg">Your journey from student to professional</p>
+      <section className="py-10 md:py-16 lg:py-20 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-8 md:mb-12 lg:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2 md:mb-4">How It Works</h2>
+          <p className="text-sky-200 text-xs sm:text-sm md:text-base lg:text-lg">Your journey from student to professional</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
           {[
             { step: "01", title: "Create Profile", desc: "Tell us about your skills & goals" },
             { step: "02", title: "Premium Courses", desc: "Our Courses Help you to enhance your Knowledge" },
@@ -451,25 +454,25 @@ export default function Home({ defaultConfig }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className="bg-black/30 border border-sky-500/20 rounded-2xl p-6 text-center
+              className="bg-black/30 border border-sky-500/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 text-center
               hover:-translate-y-2 hover:shadow-lg hover:shadow-sky-500/20 transition-all"
             >
-              <div className="text-4xl md:text-5xl font-black text-sky-400 mb-4">{item.step}</div>
-              <h3 className="text-lg md:text-xl font-bold mb-2">{item.title}</h3>
-              <p className="text-sky-200 text-sm">{item.desc}</p>
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-sky-400 mb-2 sm:mb-3 md:mb-4">{item.step}</div>
+              <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2">{item.title}</h3>
+              <p className="text-sky-200 text-xs sm:text-sm">{item.desc}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* ================= WHO IS THIS FOR ================= */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-black mb-4 uppercase tracking-tight">Who Is This Platform For?</h2>
-          <p className="text-sm sm:text-lg text-sky-200/60">Designed for every career stage</p>
+      <section className="py-10 md:py-16 lg:py-20 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-8 md:mb-12 lg:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2 md:mb-4 uppercase tracking-tight">Who Is This Platform For?</h2>
+          <p className="text-xs sm:text-sm md:text-base lg:text-lg text-sky-200/60">Designed for every career stage</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
           {[
             { icon: <FaGraduationCap />, title: "Students", desc: "Explore internships & build skills early" },
             { icon: <FaLaptopCode />, title: "Freshers", desc: "Crack ATS & land your first job" },
@@ -481,27 +484,27 @@ export default function Home({ defaultConfig }) {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className="bg-gradient-to-br from-black/40 to-black/20 border border-sky-500/20 rounded-2xl p-8 text-center
+              className="bg-gradient-to-br from-black/40 to-black/20 border border-sky-500/20 rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 text-center
               hover:shadow-xl hover:shadow-sky-500/20 transition-all flex flex-col items-center"
             >
-              <div className="text-4xl text-sky-400 mb-4 flex justify-center">
+              <div className="text-2xl sm:text-3xl md:text-4xl text-sky-400 mb-2 sm:mb-3 md:mb-4 flex justify-center">
                 {item.icon}
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold mb-3">{item.title}</h3>
-              <p className="text-sky-200/70 text-sm sm:text-base">{item.desc}</p>
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-3">{item.title}</h3>
+              <p className="text-sky-200/70 text-xs sm:text-sm md:text-base">{item.desc}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* ================= WHY CHOOSE US ================= */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-black mb-4">Why Choose Us?</h2>
-          <p className="text-sky-200 text-lg">Built to actually get you hired</p>
+      <section className="py-10 md:py-16 lg:py-20 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-8 md:mb-12 lg:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2 md:mb-4">Why Choose Us?</h2>
+          <p className="text-sky-200 text-xs sm:text-sm md:text-base lg:text-lg">Built to actually get you hired</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
           {[
             { icon: <FaRobot />, title: "AI Powered", desc: "Smart resume & career recommendations" },
             { icon: <FaStar />, title: "Verified Opportunities", desc: "No fake jobs, only trusted companies" },
@@ -513,56 +516,56 @@ export default function Home({ defaultConfig }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className="bg-black/30 border border-sky-500/20 rounded-2xl p-8 text-center
+              className="bg-black/30 border border-sky-500/20 rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 text-center
               hover:-translate-y-2 hover:shadow-lg hover:shadow-sky-500/20 transition-all"
             >
-              <div className="text-4xl text-sky-400 mb-4 flex justify-center">
+              <div className="text-2xl sm:text-3xl md:text-4xl text-sky-400 mb-2 sm:mb-3 md:mb-4 flex justify-center">
                 {item.icon}
               </div>
-              <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-              <p className="text-sky-200">{item.desc}</p>
+              <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2">{item.title}</h3>
+              <p className="text-sky-200 text-xs sm:text-sm md:text-base">{item.desc}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* ================= CLIENT WORK PROJECT ================= */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-black mb-4">Client Work Project</h2>
-          <p className="text-sky-200 text-lg">Showcasing our latest successful collaborations</p>
+      <section className="py-10 md:py-16 lg:py-20 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-8 md:mb-12 lg:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2 md:mb-4">Client Work Project</h2>
+          <p className="text-sky-200 text-xs sm:text-sm md:text-base lg:text-lg">Showcasing our latest successful collaborations</p>
         </div>
 
-        <div className="bg-black/30 border border-sky-500/20 rounded-2xl p-12 text-center">
-          <h3 className="text-2xl font-bold text-white mb-4">Project Showcase Coming Soon</h3>
-          <p className="text-sky-200">We are currently updating our portfolio with our latest client work. Stay tuned!</p>
+        <div className="bg-black/30 border border-sky-500/20 rounded-xl sm:rounded-2xl p-6 sm:p-8 md:p-12 text-center">
+          <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-3 md:mb-4">Project Showcase Coming Soon</h3>
+          <p className="text-sky-200 text-xs sm:text-sm md:text-base">We are currently updating our portfolio with our latest client work. Stay tuned!</p>
         </div>
       </section>
 
       {/* ================= OUR MORE SITES ================= */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-black mb-4">Our More Sites</h2>
-          <p className="text-sky-200 text-lg">Explore our specialized services</p>
+      <section className="py-10 md:py-16 lg:py-20 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-8 md:mb-12 lg:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2 md:mb-4">Our More Sites</h2>
+          <p className="text-sky-200 text-xs sm:text-sm md:text-base lg:text-lg">Explore our specialized services</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
           {/* Digital Marketing */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="group bg-gradient-to-br from-black/40 to-black/20 border border-sky-500/20 rounded-2xl p-8 hover:shadow-xl hover:shadow-sky-500/20 transition-all"
+            className="group bg-gradient-to-br from-black/40 to-black/20 border border-sky-500/20 rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 hover:shadow-xl hover:shadow-sky-500/20 transition-all"
           >
-            <div className="text-5xl text-sky-400 mb-6 flex justify-center group-hover:scale-110 transition-transform">
+            <div className="text-3xl sm:text-4xl md:text-5xl text-sky-400 mb-3 sm:mb-4 md:mb-6 flex justify-center group-hover:scale-110 transition-transform">
               <FaBullhorn />
             </div>
-            <h3 className="text-2xl font-bold mb-4 text-center">Digital Marketing</h3>
-            <p className="text-sky-200 text-center mb-6">
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-3 md:mb-4 text-center">Digital Marketing</h3>
+            <p className="text-sky-200 text-xs sm:text-sm md:text-base text-center mb-3 sm:mb-4 md:mb-6">
               Boost your brand presence with our expert digital marketing strategies. SEO, SMM, and more.
             </p>
             <div className="text-center">
-              <Link to="/digital-marketing" className="inline-flex items-center gap-2 text-sky-300 font-semibold hover:text-sky-200 transition-colors">
+              <Link to="/digital-marketing" className="inline-flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-sky-300 font-semibold hover:text-sky-200 transition-colors">
                 Visit Site <FaArrowRight />
               </Link>
             </div>
@@ -573,17 +576,17 @@ export default function Home({ defaultConfig }) {
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="group bg-gradient-to-br from-black/40 to-black/20 border border-sky-500/20 rounded-2xl p-8 hover:shadow-xl hover:shadow-sky-500/20 transition-all"
+            className="group bg-gradient-to-br from-black/40 to-black/20 border border-sky-500/20 rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 hover:shadow-xl hover:shadow-sky-500/20 transition-all"
           >
-            <div className="text-5xl text-sky-400 mb-6 flex justify-center group-hover:scale-110 transition-transform">
+            <div className="text-3xl sm:text-4xl md:text-5xl text-sky-400 mb-3 sm:mb-4 md:mb-6 flex justify-center group-hover:scale-110 transition-transform">
               <FaVideo />
             </div>
-            <h3 className="text-2xl font-bold mb-4 text-center">Video Editing & Marketing</h3>
-            <p className="text-sky-200 text-center mb-6">
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-3 md:mb-4 text-center">Video Editing & Marketing</h3>
+            <p className="text-sky-200 text-xs sm:text-sm md:text-base text-center mb-3 sm:mb-4 md:mb-6">
               High-quality video production and editing services to tell your brand's story effectively.
             </p>
             <div className="text-center">
-              <Link to="/video-editing" className="inline-flex items-center gap-2 text-sky-300 font-semibold hover:text-sky-200 transition-colors">
+              <Link to="/video-editing" className="inline-flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-sky-300 font-semibold hover:text-sky-200 transition-colors">
                 Visit Site <FaArrowRight />
               </Link>
             </div>
@@ -591,27 +594,26 @@ export default function Home({ defaultConfig }) {
         </div>
       </section>
 
-
       {/* ================= CTA ================= */}
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="bg-gradient-to-br from-sky-500/10 via-black/30 to-gray-900/20 backdrop-blur-xl rounded-3xl border border-sky-500/20 p-8 md:p-12 lg:p-16 flex flex-col lg:flex-row items-center">
-          <div className="lg:w-2/3 lg:pr-12 text-center lg:text-left">
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-6">Ready to Transform Your Career?</h2>
-            <p className="text-xl text-sky-200 mb-8 max-w-2xl">Join thousands of students who've landed their dream jobs through our platform.</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link to="/auth" className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-1 transition-all duration-300 hover:bg-gradient-to-r hover:from-sky-400 hover:to-sky-500 text-center w-full sm:w-auto">
+      <section className="py-10 md:py-16 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="bg-gradient-to-br from-sky-500/10 via-black/30 to-gray-900/20 backdrop-blur-xl rounded-xl sm:rounded-2xl md:rounded-3xl border border-sky-500/20 p-5 sm:p-6 md:p-8 lg:p-12 xl:p-16 flex flex-col lg:flex-row items-center">
+          <div className="lg:w-2/3 lg:pr-8 xl:pr-12 text-center lg:text-left">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-3 sm:mb-4 md:mb-6">Ready to Transform Your Career?</h2>
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-sky-200 mb-4 sm:mb-5 md:mb-6 lg:mb-8 max-w-2xl">Join thousands of students who've landed their dream jobs through our platform.</p>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+              <Link to="/auth" className="bg-gradient-to-r from-sky-500 to-sky-600 text-white px-5 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 rounded-full font-semibold text-sm sm:text-base md:text-lg shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-1 transition-all duration-300 hover:bg-gradient-to-r hover:from-sky-400 hover:to-sky-500 text-center w-full sm:w-auto">
                 Get Started Free
               </Link>
-              <Link to="/courses" className="bg-black/40 backdrop-blur-sm text-white border-2 border-sky-500/30 px-8 py-4 rounded-full font-semibold text-lg hover:bg-black/50 hover:border-sky-500/50 transition-all duration-300 text-center w-full sm:w-auto">
+              <Link to="/courses" className="bg-black/40 backdrop-blur-sm text-white border-2 border-sky-500/30 px-5 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 rounded-full font-semibold text-sm sm:text-base md:text-lg hover:bg-black/50 hover:border-sky-500/50 transition-all duration-300 text-center w-full sm:w-auto">
                 Explore Premium Courses
               </Link>
             </div>
           </div>
-          <div className="lg:w-1/3 mt-12 lg:mt-0 flex justify-center">
-            <div className="w-64 h-48 md:w-80 md:h-60 bg-gradient-to-br from-sky-500/20 to-black/40 rounded-2xl border border-sky-500/20 shadow-xl flex items-center justify-center">
+          <div className="lg:w-1/3 mt-6 sm:mt-8 md:mt-10 lg:mt-0 flex justify-center">
+            <div className="w-40 sm:w-48 md:w-56 lg:w-64 h-32 sm:h-36 md:h-40 lg:h-48 xl:w-80 xl:h-60 bg-gradient-to-br from-sky-500/20 to-black/40 rounded-xl sm:rounded-2xl border border-sky-500/20 shadow-xl flex items-center justify-center">
               <div className="text-center">
-                <FaStar className="text-5xl text-sky-400/70 mx-auto mb-4" />
-                <p className="text-sky-200 font-semibold">Premium Career Platform</p>
+                <FaStar className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-sky-400/70 mx-auto mb-2 sm:mb-3 md:mb-4" />
+                <p className="text-sky-200 font-semibold text-xs sm:text-sm md:text-base">Premium Career Platform</p>
               </div>
             </div>
           </div>
@@ -619,17 +621,17 @@ export default function Home({ defaultConfig }) {
       </section>
 
       {/* ================= TESTIMONIALS ================= */}
-      <section className="py-24 px-6 max-w-7xl mx-auto overflow-hidden">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-black mb-4">What Our Users Say</h2>
-          <p className="text-sky-200 text-lg">
+      <section className="py-12 md:py-16 lg:py-24 px-4 sm:px-6 max-w-7xl mx-auto overflow-hidden">
+        <div className="text-center mb-8 md:mb-12 lg:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2 md:mb-4">What Our Users Say</h2>
+          <p className="text-sky-200 text-xs sm:text-sm md:text-base lg:text-lg">
             Real stories from students & professionals
           </p>
         </div>
 
         <div className="flex overflow-hidden">
           <motion.div
-            className="flex gap-8 w-max flex-nowrap"
+            className="flex gap-4 sm:gap-5 md:gap-6 lg:gap-8 w-max flex-nowrap"
             animate={{ x: [0, '-50%'] }}
             transition={{ repeat: Infinity, duration: 30, ease: 'linear' }}
           >
@@ -678,12 +680,12 @@ export default function Home({ defaultConfig }) {
             ]).map((t, i) => (
               <div
                 key={i}
-                className="w-[320px] bg-black/30 backdrop-blur-lg border border-sky-500/20
-                rounded-2xl p-6 hover:shadow-xl hover:shadow-sky-500/20 transition-all"
+                className="w-[260px] sm:w-[280px] md:w-[300px] lg:w-[320px] bg-black/30 backdrop-blur-lg border border-sky-500/20
+                rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 hover:shadow-xl hover:shadow-sky-500/20 transition-all"
               >
-                <p className="italic text-sky-100 mb-4">“{t.text}”</p>
-                <p className="font-bold text-white">{t.name}</p>
-                <p className="text-sky-400 text-sm">{t.role}</p>
+                <p className="italic text-sky-100 mb-2 sm:mb-3 md:mb-4 text-xs sm:text-sm md:text-base">“{t.text}”</p>
+                <p className="font-bold text-white text-sm sm:text-base md:text-lg">{t.name}</p>
+                <p className="text-sky-400 text-xs sm:text-sm">{t.role}</p>
               </div>
             ))}
           </motion.div>
@@ -691,19 +693,19 @@ export default function Home({ defaultConfig }) {
       </section>
 
       {/* ================= TRUSTED BY COMPANIES ================= */}
-      <section className="py-20 px-6 bg-black/30 overflow-hidden pb-30">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-black mb-3">
+      <section className="py-10 md:py-16 lg:py-20 px-4 sm:px-6 bg-black/30 overflow-hidden pb-20 md:pb-24 lg:pb-30">
+        <div className="text-center mb-6 md:mb-8 lg:mb-12">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-black mb-2 md:mb-3">
             Trusted by Hiring Partners
           </h2>
-          <p className="text-sky-200">
+          <p className="text-sky-200 text-xs sm:text-sm md:text-base">
             Students placed & hired across top companies
           </p>
         </div>
 
         <div className="flex overflow-hidden">
           <motion.div
-            className="flex gap-24 items-center w-max flex-nowrap"
+            className="flex gap-8 sm:gap-12 md:gap-16 lg:gap-24 items-center w-max flex-nowrap"
             animate={{ x: [0, '-50%'] }}
             transition={{ repeat: Infinity, duration: 35, ease: 'linear' }}
           >
@@ -726,13 +728,13 @@ export default function Home({ defaultConfig }) {
               .map((company, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 text-xl font-semibold whitespace-nowrap
-                  transition-all duration-300 hover:scale-110 px-4"
+                  className="flex items-center gap-1 sm:gap-2 md:gap-3 text-base sm:text-lg md:text-xl font-semibold whitespace-nowrap
+                  transition-all duration-300 hover:scale-110 px-2 sm:px-3 md:px-4"
                 >
-                  <span className={`text-3xl ${company.color}`}>
+                  <span className={`text-xl sm:text-2xl md:text-3xl ${company.color}`}>
                     {company.icon}
                   </span>
-                  <span className="text-sky-100">
+                  <span className="text-sky-100 text-xs sm:text-sm md:text-base lg:text-lg">
                     {company.name}
                   </span>
                 </div>
