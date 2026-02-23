@@ -1,13 +1,12 @@
 import React from 'react';
 import { FaRocket, FaUsers, FaBullseye, FaLightbulb, FaArrowRight } from 'react-icons/fa';
-
 // images import
 import Aditya from "../assets/Aditya.jpg"
 import Meraj from "../assets/Meraj.jpg"
 import Akib from "../assets/Akib.jpg"
 import Nishu from "../assets/Nishu.jpg"
 import Shivam from "../assets/Shivam.jpg"
-import Thakur from "../assets/Thakur.jpeg"
+import Thakur from "../assets/Thakur.jpg"
 
 const teamMembers = [
   {
