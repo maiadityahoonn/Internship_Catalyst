@@ -288,7 +288,15 @@ export default function Home({ defaultConfig }) {
       <SEO />
 
       {/* ================= HERO ================= */}
-      <section className="relative min-h-screen flex items-center pt-24 pb-12 px-4 sm:px-6 overflow-hidden">
+      {/* ================= HERO ================= */}
+      <section
+        className="relative flex items-center
+  pt-20 sm:pt-24 md:pt-28
+  pb-10 sm:pb-12 md:pb-16
+  px-4 sm:px-6
+  min-h-[85vh] md:min-h-screen
+  overflow-hidden"
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-sky-900/20 via-black to-black" />
 
         <div className="relative max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
@@ -300,11 +308,11 @@ export default function Home({ defaultConfig }) {
             transition={{ duration: 0.9 }}
             className="text-center lg:text-left z-10 w-full px-2"
           >
-            <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight bg-gradient-to-r from-white via-sky-300 to-white bg-clip-text text-transparent mb-4 md:mb-6 pb-2">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight bg-gradient-to-r from-white via-sky-300 to-white bg-clip-text text-transparent mb-4 md:mb-6 pb-2">
               Your Career Journey Starts Here
             </h1>
 
-            <h2 className="mt-3 md:mt-4 text-base xs:text-lg sm:text-xl md:text-2xl lg:text-4xl font-bold leading-snug text-white">
+            <h2 className="mt-3 md:mt-4 text-base sm:text-xl md:text-2xl lg:text-4xl font-bold leading-snug text-white">
               Launch your Career in
               <span className="block mt-1 text-sky-400 font-extrabold text-lg sm:text-xl md:text-2xl lg:text-4xl">
                 <Typewriter
@@ -326,15 +334,15 @@ export default function Home({ defaultConfig }) {
               </span>
             </h2>
 
-            <p className="mt-4 md:mt-6 text-xs sm:text-sm md:text-base lg:text-lg text-sky-200 max-w-xl mx-auto lg:mx-0 px-2 sm:px-0 opacity-80">
+            <p className="mt-4 md:mt-6 text-sm md:text-base lg:text-lg text-sky-200 max-w-xl mx-auto lg:mx-0 opacity-80">
               We provide courses, internships, and AI-powered tools to help you
               enhance your skills and get ready for your dream jobs.
             </p>
 
-            <div className="mt-6 md:mt-10 flex flex-col sm:flex-row gap-3 md:gap-4 items-center justify-center lg:justify-start">
+            <div className="mt-6 md:mt-10 flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start">
               <Link
                 to="/jobs"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-sky-500 hover:bg-sky-400 transition shadow-[0_0_20px_rgba(14,165,233,0.3)] font-bold uppercase tracking-widest text-xs sm:text-sm"
+                className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-sky-500 hover:bg-sky-400 transition shadow-lg font-bold uppercase tracking-widest text-sm"
               >
                 <FaSearch size={14} />
                 Explore Opportunities
@@ -345,19 +353,22 @@ export default function Home({ defaultConfig }) {
           {/* PARTICLE SPHERE */}
           <motion.div
             style={{
-              y: window.innerWidth < 768 ? 0 : sphereY,
+              y: sphereY,
               scale: sphereScale
             }}
-            className="relative w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[500px] lg:mt-0"
+            className="relative w-full
+      h-[220px]
+      sm:h-[260px]
+      md:h-[320px]
+      lg:h-[450px]"
           >
             <ParticleSphere />
           </motion.div>
 
         </div>
       </section>
-
       {/* ================= STATS ================= */}
-      <section className="py-8 md:py-12 lg:py-20 max-w-6xl mx-auto px-4 sm:px-6">
+      <section className="pt-6 sm:pt-8 md:pt-12 pb-10 md:pb-16 lg:pb-20 max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           {[
             { icon: <FaBriefcase />, value: stats.jobs, label: 'Jobs' },
