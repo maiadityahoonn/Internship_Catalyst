@@ -290,31 +290,37 @@ export default function Home({ defaultConfig }) {
       {/* ================= HERO ================= */}
       {/* ================= HERO ================= */}
       <section
-        className="relative flex items-center
+        className="
+  relative
+  flex flex-col
+  md:flex-row
+  items-center
+  justify-start md:justify-center
   pt-20 sm:pt-24 md:pt-28
-  pb-10 sm:pb-12 md:pb-16
+  pb-12 md:pb-16
   px-4 sm:px-6
-  min-h-[85vh] md:min-h-screen
-  overflow-hidden"
+  md:min-h-screen
+  overflow-hidden
+"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-sky-900/20 via-black to-black" />
 
-        <div className="relative max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+        <div className="relative max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-10 md:gap-16 items-center">
 
           {/* TEXT */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9 }}
-            className="text-center lg:text-left z-10 w-full px-2"
+            className="text-center md:text-left z-10"
           >
-            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight bg-gradient-to-r from-white via-sky-300 to-white bg-clip-text text-transparent mb-4 md:mb-6 pb-2">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight bg-gradient-to-r from-white via-sky-300 to-white bg-clip-text text-transparent mb-4">
               Your Career Journey Starts Here
             </h1>
 
-            <h2 className="mt-3 md:mt-4 text-base sm:text-xl md:text-2xl lg:text-4xl font-bold leading-snug text-white">
+            <h2 className="mt-3 text-base sm:text-xl md:text-2xl lg:text-3xl font-bold text-white">
               Launch your Career in
-              <span className="block mt-1 text-sky-400 font-extrabold text-lg sm:text-xl md:text-2xl lg:text-4xl">
+              <span className="block mt-2 text-sky-400 font-extrabold text-lg sm:text-xl md:text-2xl lg:text-3xl">
                 <Typewriter
                   words={[
                     "Web Development",
@@ -334,15 +340,15 @@ export default function Home({ defaultConfig }) {
               </span>
             </h2>
 
-            <p className="mt-4 md:mt-6 text-sm md:text-base lg:text-lg text-sky-200 max-w-xl mx-auto lg:mx-0 opacity-80">
+            <p className="mt-4 text-sm sm:text-base md:text-lg text-sky-200 max-w-xl mx-auto md:mx-0 opacity-80">
               We provide courses, internships, and AI-powered tools to help you
               enhance your skills and get ready for your dream jobs.
             </p>
 
-            <div className="mt-6 md:mt-10 flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start">
+            <div className="mt-6 flex justify-center md:justify-start">
               <Link
                 to="/jobs"
-                className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-sky-500 hover:bg-sky-400 transition shadow-lg font-bold uppercase tracking-widest text-sm"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-sky-500 hover:bg-sky-400 transition shadow-lg font-bold uppercase tracking-widest text-sm"
               >
                 <FaSearch size={14} />
                 Explore Opportunities
@@ -356,11 +362,15 @@ export default function Home({ defaultConfig }) {
               y: sphereY,
               scale: sphereScale
             }}
-            className="relative w-full
-      h-[220px]
-      sm:h-[260px]
+            className="
+      relative
+      w-full
+      mt-8 md:mt-0
+      h-[180px]
+      sm:h-[240px]
       md:h-[320px]
-      lg:h-[450px]"
+      lg:h-[420px]
+      "
           >
             <ParticleSphere />
           </motion.div>
