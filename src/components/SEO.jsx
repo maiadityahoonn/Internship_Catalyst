@@ -11,7 +11,7 @@ const SEO = ({ title, description, keywords, canonical, image }) => {
 
     useEffect(() => {
         // 1. Update Document Title
-        const fullTitle = title ? `${title} | Internship Catalyst` : "Internship Catalyst | Launch Your Dream Career";
+        const fullTitle = title ? `${title} | Internship Catalyst` : "Internship Catalyst";
         document.title = fullTitle;
 
         // Helper to update or create meta tags
