@@ -11,7 +11,6 @@ import Auth from "./Pages/Auth.jsx";
 import "./index.css";
 
 import About from "./about/About.jsx";
-import Resources from "./Pages/Resources.jsx";
 
 import Profile from "./Pages/Profile";
 import ATSScoreChecker from "./Pages/ATSScoreChecker";
@@ -19,6 +18,7 @@ import SkillGapAnalyzer from "./Pages/SkillGapAnalyzer";
 import AICoverLetter from "./Pages/AICoverLetter";
 import AIResumeTemplates from "./Pages/AIResumeTemplates";
 import AIPage from "./Pages/AIPage";
+import AICheckout from "./Pages/AICheckout";
 import AdminDashboard from "./Pages/AdminDashboard";
 import AddEvent from "./Pages/AddEvent";
 import EventDetails from "./Pages/EventDetails";
@@ -50,8 +50,8 @@ function App() {
         <Routes>
           <Route index element={<Home defaultConfig={defaultConfig} />} />
           <Route path="/ai" element={<AIPage />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/ai/checkout/:toolId" element={<ProtectedRoute><AICheckout /></ProtectedRoute>} />
+          <Route path="/about-us" element={<About />} />
           <Route path="/ai-resume-templates" element={<ProtectedRoute><AIResumeTemplates /></ProtectedRoute>} />
           <Route path="/ats-score-checker" element={<ProtectedRoute><ATSScoreChecker /></ProtectedRoute>} />
           <Route path="/skill-gap-analyzer" element={<ProtectedRoute><SkillGapAnalyzer /></ProtectedRoute>} />

@@ -7,7 +7,8 @@ import {
     Lightbulb,
     Rocket,
     Cpu,
-    ArrowRight,
+    BadgePercent,
+    ArrowLeft,
     Sparkles,
     Zap,
     BrainCircuit,
@@ -22,18 +23,36 @@ import {
     Database,
     Lock,
     Unlock,
-    CreditCard,
-    X,
-    BadgePercent
+    ArrowRight
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import { isToolPurchased, recordPurchase, getActiveTools, PRICING } from '../utils/aiMonetization';
+import { isToolPurchased, recordPurchase, getActiveTools, PRICING, AI_TOOLS } from '../utils/aiMonetization';
+import * as LucideIcons from 'lucide-react';
+
+const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.2,
+            delayChildren: 0.1,
+        },
+    },
+};
+
+const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { type: "spring", stiffness: 100, damping: 20 },
+    },
+};
 
 export default function AIPage() {
     const navigate = useNavigate();
     const [activeFaq, setActiveFaq] = useState(null);
-    const [selectedTool, setSelectedTool] = useState(null); // For Purchase Modal
     const [purchasedTools, setPurchasedTools] = useState([]);
 
 
@@ -53,56 +72,13 @@ export default function AIPage() {
         setPurchasedTools(activeTools);
     };
 
-    const aiTools = [
-        {
-            id: "ai-resume",
-            title: "AI Resume Builder",
-            description: "Easily make a professional resume that gets you hired.",
-            icon: <Bot className="text-sky-400" size={24} />,
-            path: "/ai-resume-templates",
-            features: ["Easy to Use", "Fast Results", "Job Ready"],
-            color: "from-sky-500/20 to-blue-500/20",
-            accent: "sky",
-            price: PRICING['ai-resume'].sale,
-            actualPrice: PRICING['ai-resume'].actual
-        },
-        {
-            id: "ats-checker",
-            title: "ATS Score Checker",
-            description: "Check if your resume can pass company software filters.",
-            icon: <Target className="text-indigo-400" size={24} />,
-            path: "/ats-score-checker",
-            features: ["Score Card", "Fix Mistakes", "Keyword Tips"],
-            color: "from-indigo-500/20 to-purple-500/20",
-            accent: "indigo",
-            price: PRICING['ats-checker'].sale,
-            actualPrice: PRICING['ats-checker'].actual
-        },
-        {
-            id: "skill-gap",
-            title: "Skill Gap Analyzer",
-            description: "Find out what skills you need to learn for your dream job.",
-            icon: <Lightbulb className="text-purple-400" size={24} />,
-            path: "/skill-gap-analyzer",
-            features: ["Skill Check", "Learn Plan", "Job Goals"],
-            color: "from-purple-500/20 to-pink-500/20",
-            accent: "purple",
-            price: PRICING['skill-gap'].sale,
-            actualPrice: PRICING['skill-gap'].actual
-        },
-        {
-            id: "cover-letter",
-            title: "AI Cover Letter",
-            description: "Write perfect application letters to impress companies.",
-            icon: <Zap className="text-emerald-400" size={24} />,
-            path: "/cover-letter-ai",
-            features: ["Match Job", "Pro Tone", "Save Time"],
-            color: "from-emerald-500/20 to-teal-500/20",
-            accent: "emerald",
-            price: PRICING['cover-letter'].sale,
-            actualPrice: PRICING['cover-letter'].actual
-        }
-    ];
+    // Use AI_TOOLS from utility
+    const aiToolsList = AI_TOOLS.map(tool => ({
+        ...tool,
+        price: PRICING[tool.id].sale,
+        actualPrice: PRICING[tool.id].actual,
+        icon: React.createElement(LucideIcons[tool.iconName] || LucideIcons.Bot, { size: 24 })
+    }));
 
     const handleToolClick = (tool) => {
         if (!auth.currentUser) {
@@ -115,46 +91,10 @@ export default function AIPage() {
         if (owns || tool.price === 0) {
             navigate(tool.path);
         } else {
-            setSelectedTool(tool);
+            navigate(`/ai/checkout/${tool.id}`);
         }
     };
 
-    const handleRazorpayPayment = async (tool) => {
-        const options = {
-            key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Loaded from .env
-            amount: tool.price * 100, // Amount in paise
-            currency: "INR",
-            name: "Internship Catalyst",
-            description: `3 Month Access to ${tool.title}`,
-            image: "https://internshipcatalyst.com/logo-og.png",
-            handler: async (response) => {
-                const success = await recordPurchase(
-                    auth.currentUser.uid,
-                    tool.id,
-                    response.razorpay_payment_id
-                );
-
-                if (success) {
-                    alert(`${tool.title} Unlocked Successfully!`);
-                    checkAccess();
-                    setSelectedTool(null);
-                    navigate(tool.path);
-                } else {
-                    alert("Something went wrong. Please contact support.");
-                }
-            },
-            prefill: {
-                name: auth.currentUser.displayName || "",
-                email: auth.currentUser.email || ""
-            },
-            theme: {
-                color: "#0ea5e9"
-            }
-        };
-
-        const rzp = new window.Razorpay(options);
-        rzp.open();
-    };
 
     const isOwned = (toolId) => {
         return purchasedTools.includes(toolId);
@@ -163,7 +103,7 @@ export default function AIPage() {
     const workflowSteps = [
         { icon: <Globe size={24} />, title: "Share", desc: "Upload your resume or share your details." },
         { icon: <Cpu size={24} />, title: "Process", desc: "Our AI checks your data against top companies." },
-        { icon: <AnimatePresence><ZapIcon size={24} /></AnimatePresence>, title: "Improve", desc: "AI helps you fix mistakes and look better." },
+        { icon: <ZapIcon size={24} />, title: "Improve", desc: "AI helps you fix mistakes and look better." },
         { icon: <CheckCircle2 size={24} />, title: "Download", desc: "Get your files ready to apply for jobs." }
     ];
 
@@ -211,49 +151,63 @@ export default function AIPage() {
                 <div className="max-w-7xl mx-auto relative z-10 px-4 sm:px-6 lg:px-8">
 
                     {/* 🚀 HERO SECTION */}
-                    <div className="text-center pt-24 md:pt-32 mb-16 md:mb-32 relative">
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: false, amount: 0.1 }}
+                        className="text-center pt-24 md:pt-32 mb-16 md:mb-32 relative"
+                    >
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold uppercase tracking-widest mb-6 backdrop-blur-md"
+                            variants={fadeInUp}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold tracking-widest mb-6 backdrop-blur-md"
                         >
                             <Sparkles size={14} className="animate-pulse" />PRO AI TOOLS
                         </motion.div>
 
                         <motion.h1
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="text-[2.25rem] sm:text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight"
+                            variants={fadeInUp}
+                            className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 tracking-tighter leading-tight"
                         >
                             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Boost Your </span>
                             <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500">Career</span>
                         </motion.h1>
 
-                        <p className="text-slate-400 text-base md:text-lg lg:text-xl max-w-2xl mx-auto font-light leading-relaxed mb-12 px-4">
+                        <motion.p
+                            variants={fadeInUp}
+                            className="text-sm md:text-lg text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed mb-12"
+                        >
                             Get powerful AI tools to help you get hired faster. Easy to use, recruiter-approved, and made for students.
-                        </p>
-                    </div>
+                        </motion.p>
+                    </motion.div>
 
                     {/* ⚡ THE CORE TOOLS */}
-                    <div className="mb-24 sm:mb-32 lg:mb-40">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-12 gap-4">
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: false, amount: 0.1 }}
+                        className="mb-24 sm:mb-32 lg:mb-40"
+                    >
+                        <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-12 gap-4">
                             <div>
-                                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter uppercase mb-2 text-white">AI Smart Tools</h2>
+                                <h2 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 text-white">AI Smart Tools</h2>
                                 <div className="h-1 w-20 bg-gradient-to-r from-sky-500 to-transparent rounded-full"></div>
                             </div>
-                        </div>
+                        </motion.div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {aiTools.map((tool, i) => (
+                            {aiToolsList.map((tool, i) => (
                                 <motion.div
                                     key={i}
+                                    variants={fadeInUp}
                                     whileHover={{ y: -8 }}
                                     onClick={() => handleToolClick(tool)}
                                     className="group relative h-full flex flex-col cursor-pointer"
                                 >
                                     <div className={`absolute -inset-0.5 bg-gradient-to-r ${tool.color} rounded-[2rem] blur opacity-10 group-hover:opacity-40 transition duration-500`}></div>
 
-                                    <div className="relative flex-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 group-hover:border-sky-500/30 rounded-[2rem] p-8 flex flex-col transition-all duration-300">
+                                    <div className="relative flex-1 bg-slate-900/40 backdrop-blur-xl border border-white/5 group-hover:border-sky-500/30 rounded-[2rem] p-6 sm:p-8 flex flex-col transition-all duration-300">
 
                                         <div className="flex items-center justify-between w-full mb-8">
                                             <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-sky-500/10 transition-colors">
@@ -263,29 +217,29 @@ export default function AIPage() {
                                             {isOwned(tool.id) || tool.price === 0 ? (
                                                 <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-1.5">
                                                     <Unlock size={10} className="text-emerald-400" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Unlocked</span>
+                                                    <span className="text-[10px] font-black tracking-widest text-emerald-400">Unlocked</span>
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-col items-end">
                                                     <span className="text-[10px] font-bold text-slate-500 line-through">₹{tool.actualPrice}</span>
                                                     <div className="px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 flex items-center gap-1.5 mt-1">
                                                         <ZapIcon size={10} className="text-sky-400" />
-                                                        <span className="text-[10px] font-black uppercase tracking-widest text-sky-400">₹{tool.price}</span>
+                                                        <span className="text-[10px] font-black tracking-widest text-sky-400">₹{tool.price}</span>
                                                     </div>
                                                 </div>
                                             )}
                                         </div>
 
-                                        <h3 className="text-sm sm:text-base font-black mb-2 tracking-tighter uppercase group-hover:text-sky-400 transition-colors text-white">
+                                        <h3 className="text-base md:text-lg font-black mb-2 tracking-tight group-hover:text-sky-400 transition-colors text-white">
                                             {tool.title}
                                         </h3>
 
-                                        <p className="text-slate-500 text-xs font-medium leading-relaxed mb-6">
+                                        <p className="text-slate-400 text-xs font-medium leading-relaxed mb-6">
                                             {tool.description}
                                         </p>
 
                                         <div className="py-2 mb-4 border-y border-white/5">
-                                            <p className="text-[9px] font-black uppercase tracking-tighter text-sky-500/70">
+                                            <p className="text-[9px] font-black tracking-tighter text-sky-500/70">
                                                 90 Days Access Protocol
                                             </p>
                                         </div>
@@ -293,12 +247,12 @@ export default function AIPage() {
                                         <div className="space-y-4 mt-auto">
                                             <div className="flex flex-wrap gap-2">
                                                 {tool.features.map((f, idx) => (
-                                                    <span key={idx} className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter bg-white/5 px-2 py-0.5 rounded">
+                                                    <span key={idx} className="text-[9px] font-bold text-slate-500 tracking-tighter bg-white/5 px-2 py-0.5 rounded">
                                                         {f}
                                                     </span>
                                                 ))}
                                             </div>
-                                            <button className={`w-full py-3 rounded-xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${isOwned(tool.id) || tool.price === 0
+                                            <button className={`w-full py-3 rounded-xl border text-[10px] font-black tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${isOwned(tool.id) || tool.price === 0
                                                 ? "bg-emerald-500 text-white border-emerald-400 shadow-lg shadow-emerald-500/20"
                                                 : "bg-white/5 border-white/10 text-slate-400 group-hover:bg-sky-500 group-hover:text-white group-hover:border-sky-400 group-hover:shadow-lg group-hover:shadow-sky-500/20"
                                                 }`}>
@@ -309,79 +263,98 @@ export default function AIPage() {
                                 </motion.div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* 🧩 WORKFLOW SECTION */}
-                    <div className="mb-24 sm:mb-32 lg:mb-40 relative">
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: false, amount: 0.1 }}
+                        className="mb-24 sm:mb-32 lg:mb-40 relative"
+                    >
                         <div className="absolute top-1/2 left-0 w-full h-px bg-white/5 -z-10 hidden lg:block"></div>
 
-                        <div className="text-center mb-16">
-                            <h2 className="text-3xl sm:text-4xl font-black mb-3 tracking-tight">How It Works</h2>
-                            <p className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.2em]">The neural optimization pipeline</p>
-                        </div>
+                        <motion.div variants={fadeInUp} className="text-center mb-16">
+                            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black mb-3 tracking-tight">How It Works</h2>
+                            <p className="text-slate-500 text-[9px] font-bold tracking-[0.2em]">The neural optimization pipeline</p>
+                        </motion.div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
                             {workflowSteps.map((step, i) => (
-                                <div key={i} className="relative group flex flex-col items-center">
-                                    <div className="w-20 h-20 rounded-3xl bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-sky-400 mb-6 group-hover:border-sky-500/50 group-hover:shadow-[0_0_30px_rgba(14,165,233,0.2)] transition-all relative z-10 bg-[#020617]">
+                                <motion.div key={i} variants={fadeInUp} className="relative group flex flex-col items-center">
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-sky-400 mb-6 group-hover:border-sky-500/50 group-hover:shadow-[0_0_30px_rgba(14,165,233,0.2)] transition-all relative z-10 bg-[#020617]">
                                         <span className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-sky-500 text-black flex items-center justify-center text-[10px] font-black">
                                             0{i + 1}
                                         </span>
                                         {step.icon}
                                     </div>
-                                    <h4 className="text-sm font-black uppercase mb-2 text-white">{step.title}</h4>
-                                    <p className="text-slate-500 text-xs font-medium max-w-[200px] text-center leading-relaxed">
+                                    <h4 className="text-sm md:text-base font-black mb-2 text-white">{step.title}</h4>
+                                    <p className="text-slate-400 text-xs font-medium max-w-[200px] text-center leading-relaxed">
                                         {step.desc}
                                     </p>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* 🌟 VALUE PROPOSITIONS */}
-                    <div className="mb-24 sm:mb-32 lg:mb-40 grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
-                        <div className="lg:col-span-1 py-8">
-                            <h2 className="text-3xl sm:text-4xl font-black mb-4 leading-tight">Why Our <br /><span className="text-sky-500">AI Works Better.</span></h2>
-                            <p className="text-slate-500 text-xs font-semibold mb-8 leading-relaxed">
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: false, amount: 0.1 }}
+                        className="mb-24 sm:mb-32 lg:mb-40 grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12"
+                    >
+                        <motion.div variants={fadeInUp} className="lg:col-span-1">
+                            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black mb-4 leading-tight tracking-tight">Why Our <br /><span className="text-sky-500">AI Works Better.</span></h2>
+                            <p className="text-slate-400 text-xs font-semibold mb-8 leading-relaxed">
                                 We've spent thousands of hours reverse-engineering recruitment algorithms so you don't have to. Our AI isn't just generating text; it's engineering opportunities.
                             </p>
                             <div className="p-6 rounded-[2rem] bg-sky-500/5 border border-sky-500/10">
-                                <p className="text-[10px] font-black text-sky-500 uppercase tracking-widest mb-2">Performance Data</p>
+                                <p className="text-[10px] font-black text-sky-500 tracking-widest mb-2">Performance Data</p>
                                 <p className="text-2xl font-black text-white">+240%</p>
                                 <p className="text-xs font-bold text-slate-500">Average increase in profile visibility</p>
                             </div>
-                        </div>
+                        </motion.div>
                         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {valueProps.map((prop, i) => (
-                                <div key={i} className="p-6 rounded-[1.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all flex gap-4">
+                                <motion.div key={i} variants={fadeInUp} className="p-6 rounded-[1.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all flex gap-4">
                                     <div className="shrink-0 pt-1">{prop.icon}</div>
                                     <div>
-                                        <h5 className="font-black text-sm uppercase mb-1 tracking-tight text-white">{prop.title}</h5>
-                                        <p className="text-slate-500 text-xs font-medium leading-relaxed">{prop.desc}</p>
+                                        <h5 className="font-black text-base md:text-lg mb-1 tracking-tight text-white">{prop.title}</h5>
+                                        <p className="text-slate-400 text-xs font-medium leading-relaxed">{prop.desc}</p>
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* ❓ AI FAQ SECTION */}
-                    <div className="mb-24 sm:mb-32 lg:mb-40 max-w-4xl mx-auto">
-                        <div className="text-center mb-10 md:mb-16">
-                            <h2 className="text-2xl sm:text-4xl font-black mb-3 tracking-tight uppercase">AI Protocol FAQ</h2>
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: false, amount: 0.1 }}
+                        className="mb-24 sm:mb-32 lg:mb-40 max-w-4xl mx-auto"
+                    >
+                        <motion.div variants={fadeInUp} className="text-center mb-10 md:mb-16">
+                            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black mb-3 tracking-tight">AI Protocol FAQ</h2>
                             <div className="h-0.5 w-12 bg-sky-500 mx-auto"></div>
-                        </div>
+                        </motion.div>
 
                         <div className="space-y-4">
                             {faqs.map((faq, i) => (
-                                <div
+                                <motion.div
                                     key={i}
+                                    variants={fadeInUp}
                                     className={`rounded-2xl border transition-all duration-300 ${activeFaq === i ? 'bg-sky-500/5 border-sky-500/30' : 'bg-slate-900/40 border-white/5'}`}
                                 >
                                     <button
                                         onClick={() => setActiveFaq(activeFaq === i ? null : i)}
                                         className="w-full px-4 sm:px-6 py-5 flex items-center justify-between text-left"
                                     >
-                                        <span className="text-xs font-black uppercase tracking-tight text-white group-hover:text-sky-400">
+                                        <span className="text-xs font-black tracking-tight text-white group-hover:text-sky-400">
                                             <span className="text-sky-500 mr-3">Q.</span> {faq.q}
                                         </span>
                                         <ChevronDown className={`transition-transform duration-300 text-slate-500 ${activeFaq === i ? 'rotate-180 text-sky-500' : ''}`} size={16} />
@@ -400,95 +373,12 @@ export default function AIPage() {
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
 
-                {/* 💳 PURCHASE MODAL */}
-                <AnimatePresence>
-                    {selectedTool && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setSelectedTool(null)}
-                                className="absolute inset-0 bg-[#020617]/90 backdrop-blur-xl"
-                            />
-
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-md bg-slate-900/80 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl overflow-y-auto max-h-[90vh]"
-                            >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500" />
-
-                                <div className="p-6 md:p-8">
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
-                                                {selectedTool.icon}
-                                            </div>
-                                            <div>
-                                                <h3 className="text-lg font-black uppercase tracking-tight text-white">{selectedTool.title}</h3>
-                                                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Activating Tool</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => setSelectedTool(null)}
-                                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-all"
-                                        >
-                                            <X size={20} />
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-4 mb-8">
-                                        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/5">
-                                            <div className="flex justify-between items-center mb-3">
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Access Type</span>
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-sky-400">3 Month Pro</span>
-                                            </div>
-                                            <div className="flex flex-col gap-1">
-                                                <span className="text-xs font-bold text-slate-500 line-through">₹{selectedTool.actualPrice}</span>
-                                                <div className="flex items-baseline gap-2">
-                                                    <span className="text-4xl font-black text-white tracking-tighter">₹{selectedTool.price}</span>
-                                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Limited Period Offer</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            <h4 className="text-[9px] font-black uppercase tracking-widest text-white">Why use this Tool?</h4>
-                                            {selectedTool.features.map((feature, i) => (
-                                                <div key={i} className="flex items-center gap-3">
-                                                    <div className="w-4 h-4 rounded-full bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
-                                                        <CheckCircle2 size={8} className="text-sky-400" />
-                                                    </div>
-                                                    <span className="text-xs font-bold text-slate-300">{feature}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <button
-                                            onClick={() => handleRazorpayPayment(selectedTool)}
-                                            className="w-full py-4 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-sky-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-                                        >
-                                            <CreditCard size={14} /> Pay & Unlock Now
-                                        </button>
-                                        <p className="text-[9px] text-center text-slate-600 font-bold uppercase tracking-widest leading-loose">
-                                            By paying, you get 90 days full access <br /> to the {selectedTool.title} system.
-                                        </p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
 
                 <div className="h-32"></div>
             </div>

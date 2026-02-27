@@ -11,6 +11,26 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
 
+const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.1,
+        },
+    },
+};
+
+const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { type: "spring", stiffness: 100, damping: 20 },
+    },
+};
+
 export default function EventDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -85,9 +105,9 @@ export default function EventDetails() {
                     <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-red-500/20">
                         <AlertCircle className="w-10 h-10 text-red-500" />
                     </div>
-                    <h2 className="text-3xl font-black text-white">{error || "Event Missing"}</h2>
-                    <p className="text-slate-400">The event you are looking for might have been moved or deleted.</p>
-                    <Link to="/events" className="inline-flex items-center gap-2 px-8 py-3 bg-white text-black rounded-xl font-bold hover:bg-sky-400 transition-all">
+                    <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">{error || "Event Missing"}</h2>
+                    <p className="text-slate-400 text-xs sm:text-sm font-medium">The event you are looking for might have been moved or deleted.</p>
+                    <Link to="/events" className="inline-flex items-center gap-2 px-8 py-3 bg-white text-black rounded-xl font-black text-xs tracking-widest hover:bg-sky-400 transition-all">
                         <ArrowLeft size={18} /> Back to Events
                     </Link>
                 </div>
@@ -96,7 +116,7 @@ export default function EventDetails() {
     }
 
     return (
-        <div className="min-h-screen bg-[#020617] text-white pt-32 pb-20 px-4 sm:px-6 lg:px-8 font-sans selection:bg-sky-500/30 overflow-x-hidden">
+        <div className="min-h-screen bg-[#020617] text-white pt-24 md:pt-32 pb-20 px-4 sm:px-6 lg:px-8 font-sans selection:bg-sky-500/30 overflow-x-hidden">
             {/* Background Glows */}
             <div className="fixed inset-0 pointer-events-none z-0">
                 <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-sky-500/5 blur-[120px] rounded-full"></div>
@@ -105,22 +125,29 @@ export default function EventDetails() {
 
             <div className="max-w-6xl mx-auto relative z-10">
                 {/* Back Button */}
-                <button
+                <motion.button
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
                     onClick={() => navigate(-1)}
                     className="mb-8 flex items-center gap-2 text-slate-500 hover:text-white transition-colors group"
                 >
                     <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
                         <ArrowLeft size={20} />
                     </div>
-                    <span className="font-bold tracking-widest text-xs uppercase">Back to Events</span>
-                </button>
+                    <span className="font-bold tracking-widest text-xs">Back to Events</span>
+                </motion.button>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
                     {/* Left Column: Hero & Sections */}
                     <div className="lg:col-span-8 space-y-12">
                         {/* Header Section */}
-                        <div className="relative group">
-                            <div className="relative h-[300px] md:h-[450px] w-full rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl">
+                        <motion.div
+                            variants={staggerContainer}
+                            initial="hidden"
+                            animate="visible"
+                            className="relative group"
+                        >
+                            <motion.div variants={fadeInUp} className="relative h-[250px] sm:h-[350px] md:h-[450px] w-full rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl">
                                 {event.posterLink ? (
                                     <img src={getOptimizedImageUrl(event.posterLink, { w: 1200, q: 90 })} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
                                 ) : (
@@ -132,59 +159,71 @@ export default function EventDetails() {
 
                                 <div className="absolute bottom-6 left-6 right-6 md:bottom-10 md:left-10 md:right-10">
                                     <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
-                                        <span className="px-5 py-1.5 bg-sky-500 text-black text-[10px] font-black tracking-widest uppercase rounded-full">
+                                        <span className="px-5 py-1.5 bg-sky-500 text-black text-[10px] font-black tracking-widest rounded-full">
                                             {event.category}
                                         </span>
-                                        <span className="px-5 py-1.5 bg-white/10 backdrop-blur-md border border-white/10 text-white text-[10px] font-black tracking-widest uppercase rounded-full">
+                                        <span className="px-5 py-1.5 bg-white/10 backdrop-blur-md border border-white/10 text-white text-[10px] font-black tracking-widest rounded-full">
                                             {event.type}
                                         </span>
                                         {event.teamSize && (
-                                            <span className="px-5 py-1.5 bg-indigo-500/20 backdrop-blur-md border border-indigo-500/20 text-indigo-400 text-[10px] font-black tracking-widest uppercase rounded-full flex items-center gap-2">
+                                            <span className="px-5 py-1.5 bg-indigo-500/20 backdrop-blur-md border border-indigo-500/20 text-indigo-400 text-[10px] font-black tracking-widest rounded-full flex items-center gap-2">
                                                 <Users size={12} /> {event.teamSize} Member Team
                                             </span>
                                         )}
                                     </div>
-                                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-black mb-4 md:mb-6 leading-tight drop-shadow-2xl">{event.title}</h1>
+                                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-4 md:mb-6 leading-tight drop-shadow-2xl tracking-tighter">{event.title}</h1>
                                 </div>
-                            </div>
-                        </div>
+                            </motion.div>
+                        </motion.div>
 
                         {/* Description Section */}
-                        <section className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-6 sm:p-12 shadow-xl">
-                            <h3 className="text-xl font-black text-white mb-6 flex items-center gap-3">
-                                <span className="w-1.5 h-8 bg-sky-500 rounded-full"></span>
+                        <motion.section
+                            variants={staggerContainer}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: false, amount: 0.1 }}
+                            className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-6 sm:p-12 shadow-xl"
+                        >
+                            <motion.h2 variants={fadeInUp} className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-8 flex items-center gap-3 tracking-tight">
+                                <span className="w-1.5 h-12 bg-sky-500 rounded-full"></span>
                                 About the Event
-                            </h3>
-                            <p className="text-slate-400 text-base sm:text-lg leading-relaxed whitespace-pre-wrap font-medium">
+                            </motion.h2>
+                            <motion.p variants={fadeInUp} className="text-sm md:text-lg text-slate-400 leading-relaxed whitespace-pre-wrap font-medium">
                                 {event.description}
-                            </p>
-                        </section>
+                            </motion.p>
+                        </motion.section>
 
                         {/* Event Schedule & Mode */}
-                        <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-xl">
-                                <h3 className="text-lg font-black text-white mb-6 flex items-center gap-3">
-                                    <Calendar className="text-sky-400" size={20} />
+                        <motion.section
+                            variants={staggerContainer}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: false, amount: 0.1 }}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-8"
+                        >
+                            <motion.div variants={fadeInUp} className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-xl">
+                                <h3 className="text-xl md:text-2xl font-black text-white mb-6 flex items-center gap-3 tracking-tight">
+                                    <Calendar className="text-sky-400" size={24} />
                                     Event Schedule
                                 </h3>
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl">
-                                        <span className="text-slate-500 text-xs font-black uppercase">Starts</span>
-                                        <span className="text-white font-bold">{new Date(event.startDate).toLocaleDateString(undefined, { dateStyle: 'long' })}</span>
+                                        <span className="text-slate-500 text-[10px] font-black tracking-widest">Starts</span>
+                                        <span className="text-white font-bold text-xs sm:text-sm">{new Date(event.startDate).toLocaleDateString(undefined, { dateStyle: 'long' })}</span>
                                     </div>
                                     <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl">
-                                        <span className="text-slate-500 text-xs font-black uppercase">Ends</span>
-                                        <span className="text-white font-bold">{event.endDate ? new Date(event.endDate).toLocaleDateString(undefined, { dateStyle: 'long' }) : 'Ongoing'}</span>
+                                        <span className="text-slate-500 text-[10px] font-black tracking-widest">Ends</span>
+                                        <span className="text-white font-bold text-xs sm:text-sm">{event.endDate ? new Date(event.endDate).toLocaleDateString(undefined, { dateStyle: 'long' }) : 'Ongoing'}</span>
                                     </div>
                                     <div className="flex justify-between items-center bg-sky-500/10 p-4 rounded-2xl border border-sky-500/20">
-                                        <span className="text-sky-400 text-[10px] font-black uppercase">Register By</span>
-                                        <span className="text-sky-500 font-black">{new Date(event.registerByDate).toLocaleDateString(undefined, { dateStyle: 'long' })}</span>
+                                        <span className="text-sky-400 text-[10px] font-black tracking-widest">Register By</span>
+                                        <span className="text-sky-500 font-black text-xs sm:text-sm">{new Date(event.registerByDate).toLocaleDateString(undefined, { dateStyle: 'long' })}</span>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-xl">
-                                <h3 className="text-lg font-black text-white mb-6 flex items-center gap-3">
-                                    <Globe className="text-indigo-400" size={20} />
+                            </motion.div>
+                            <motion.div variants={fadeInUp} className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-xl">
+                                <h3 className="text-xl md:text-2xl font-black text-white mb-6 flex items-center gap-3 tracking-tight">
+                                    <Globe className="text-indigo-400" size={24} />
                                     Location & Mode
                                 </h3>
                                 <div className="space-y-6">
@@ -193,14 +232,14 @@ export default function EventDetails() {
                                             <MapPin size={24} />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Environment</p>
-                                            <p className="text-white font-bold">{event.mode} • {event.country}</p>
+                                            <p className="text-[10px] text-slate-500 font-black tracking-widest">Environment</p>
+                                            <p className="text-white font-bold text-sm sm:text-base">{event.mode} • {event.country}</p>
                                         </div>
                                     </div>
                                     {event.detailedLocation && (
                                         <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Detailed Address</p>
-                                            <p className="text-xs text-slate-300 leading-relaxed italic">"{event.detailedLocation}"</p>
+                                            <p className="text-[10px] text-slate-500 font-black tracking-widest mb-1">Detailed Address</p>
+                                            <p className="text-xs text-slate-300 leading-relaxed italic font-medium">"{event.detailedLocation}"</p>
                                         </div>
                                     )}
                                     {event.googleMapsLink && (
@@ -208,117 +247,140 @@ export default function EventDetails() {
                                             href={event.googleMapsLink}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="block w-full py-4 bg-white/5 hover:bg-white text-white hover:text-black font-bold rounded-2xl text-center transition-all border border-white/10"
+                                            className="block w-full py-4 bg-white/5 hover:bg-white text-white hover:text-black font-black text-[10px] tracking-[0.2em] rounded-2xl text-center transition-all border border-white/10"
                                         >
                                             View on Google Maps
                                         </a>
                                     )}
                                 </div>
-                            </div>
-                        </section>
+                            </motion.div>
+                        </motion.section>
 
                         {/* Rewards & Perks */}
                         {(event.prizes || (event.perks && event.perks.length > 0)) && (
-                            <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <motion.section
+                                variants={staggerContainer}
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: false, amount: 0.1 }}
+                                className="grid grid-cols-1 md:grid-cols-2 gap-8"
+                            >
                                 {event.prizes && (
-                                    <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-6 sm:p-10 shadow-xl">
-                                        <h3 className="text-lg font-black text-white mb-6 flex items-center gap-3">
-                                            <Trophy className="text-yellow-400" size={20} />
+                                    <motion.div variants={fadeInUp} className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-6 sm:p-10 shadow-xl">
+                                        <h3 className="text-xl md:text-2xl font-black text-white mb-6 flex items-center gap-3 tracking-tight">
+                                            <Trophy className="text-yellow-400" size={24} />
                                             Victory Rewards
                                         </h3>
-                                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed font-medium bg-white/5 p-4 rounded-2xl border border-white/5">
+                                        <p className="text-slate-400 text-xs sm:text-sm md:text-base leading-relaxed font-bold tracking-tight bg-white/5 p-4 rounded-2xl border border-white/5">
                                             {event.prizes}
                                         </p>
-                                    </div>
+                                    </motion.div>
                                 )}
                                 {event.perks && event.perks.length > 0 && (
-                                    <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-6 sm:p-10 shadow-xl">
-                                        <h3 className="text-lg font-black text-white mb-6 flex items-center gap-3">
-                                            <Gift className="text-rose-400" size={20} />
+                                    <motion.div variants={fadeInUp} className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-6 sm:p-10 shadow-xl">
+                                        <h3 className="text-xl md:text-2xl font-black text-white mb-6 flex items-center gap-3 tracking-tight">
+                                            <Gift className="text-rose-400" size={24} />
                                             Participation Perks
                                         </h3>
                                         <div className="flex flex-wrap gap-2 sm:gap-3">
                                             {event.perks.map((perk, i) => (
-                                                <span key={i} className="px-4 py-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-[10px] sm:text-xs font-bold font-sans">
+                                                <span key={i} className="px-4 py-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-[10px] font-black tracking-widest">
                                                     {perk}
                                                 </span>
                                             ))}
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 )}
-                            </section>
+                            </motion.section>
                         )}
 
 
-                        {/* Winner Special Rewards [NEW] */}
+                        {/* Winner Special Rewards */}
                         {event.hasWinnerRewards && (event.winnerPrizes || event.winnerTrophy || event.winnerGoodies) && (
-                            <section className="bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/10 rounded-[2.5rem] p-8 md:p-12 shadow-xl relative overflow-hidden">
+                            <motion.section
+                                variants={staggerContainer}
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: false, amount: 0.1 }}
+                                className="bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/10 rounded-[2.5rem] p-8 md:p-12 shadow-xl relative overflow-hidden"
+                            >
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 blur-3xl rounded-full translate-x-10 -translate-y-10"></div>
-                                <h3 className="text-xl font-black text-white mb-8 flex items-center gap-3">
-                                    <Trophy className="text-amber-400" size={24} />
+                                <motion.h2 variants={fadeInUp} className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-10 flex items-center gap-3 tracking-tight">
+                                    <Trophy className="text-amber-400" size={32} />
                                     Winner Special Rewards
-                                </h3>
+                                </motion.h2>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     {event.winnerPrizes && (
-                                        <div className="bg-white/5 p-6 rounded-3xl border border-white/5 hover:border-emerald-500/30 transition-all group">
+                                        <motion.div variants={fadeInUp} className="bg-white/5 p-6 rounded-3xl border border-white/5 hover:border-emerald-500/30 transition-all group">
                                             <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
                                                 <DollarSign size={24} />
                                             </div>
-                                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Cash Prize</p>
-                                            <p className="text-white font-bold">{event.winnerPrizes}</p>
-                                        </div>
+                                            <p className="text-[10px] text-slate-500 font-black tracking-widest mb-1">Cash Prize</p>
+                                            <p className="text-white font-black text-sm">{event.winnerPrizes}</p>
+                                        </motion.div>
                                     )}
                                     {event.winnerTrophy && (
-                                        <div className="bg-white/5 p-6 rounded-3xl border border-white/5 hover:border-amber-500/30 transition-all group">
+                                        <motion.div variants={fadeInUp} className="bg-white/5 p-6 rounded-3xl border border-white/5 hover:border-amber-500/30 transition-all group">
                                             <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-400 mb-4 group-hover:scale-110 transition-transform">
                                                 <Trophy size={24} />
                                             </div>
-                                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Trophy / Medal</p>
-                                            <p className="text-white font-bold">{event.winnerTrophy}</p>
-                                        </div>
+                                            <p className="text-[10px] text-slate-500 font-black tracking-widest mb-1">Trophy / Medal</p>
+                                            <p className="text-white font-black text-sm">{event.winnerTrophy}</p>
+                                        </motion.div>
                                     )}
                                     {event.winnerGoodies && (
-                                        <div className="bg-white/5 p-6 rounded-3xl border border-white/5 hover:border-rose-500/30 transition-all group">
+                                        <motion.div variants={fadeInUp} className="bg-white/5 p-6 rounded-3xl border border-white/5 hover:border-rose-500/30 transition-all group">
                                             <div className="w-12 h-12 bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-400 mb-4 group-hover:scale-110 transition-transform">
                                                 <Gift size={24} />
                                             </div>
-                                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Goodies / Swag</p>
-                                            <p className="text-white font-bold">{event.winnerGoodies}</p>
-                                        </div>
+                                            <p className="text-[10px] text-slate-500 font-black tracking-widest mb-1">Goodies / Swag</p>
+                                            <p className="text-white font-black text-sm">{event.winnerGoodies}</p>
+                                        </motion.div>
                                     )}
                                 </div>
-                            </section>
+                            </motion.section>
                         )}
 
                         {/* FAQs */}
                         {event.faqs && event.faqs.length > 0 && (
-                            <section className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-xl">
-                                <h3 className="text-xl font-black text-white mb-8 flex items-center gap-3">
-                                    <span className="w-1.5 h-8 bg-purple-500 rounded-full"></span>
+                            <motion.section
+                                variants={staggerContainer}
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: false, amount: 0.1 }}
+                                className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-xl"
+                            >
+                                <motion.h2 variants={fadeInUp} className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-10 flex items-center gap-3 tracking-tight">
+                                    <span className="w-1.5 h-12 bg-purple-500 rounded-full"></span>
                                     Frequently Asked Questions
-                                </h3>
+                                </motion.h2>
                                 <div className="space-y-6">
                                     {event.faqs.map((faq, idx) => (
-                                        <div key={idx} className="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:border-sky-500/30 transition-all">
-                                            <p className="text-white font-black mb-3 flex items-center gap-3">
+                                        <motion.div key={idx} variants={fadeInUp} className="bg-white/5 p-6 rounded-[2rem] border border-white/5 hover:border-sky-500/30 transition-all">
+                                            <p className="text-white font-black mb-3 flex items-center gap-3 text-sm sm:text-base tracking-tight">
                                                 <Sparkles size={16} className="text-sky-400" /> {faq.question}
                                             </p>
-                                            <p className="text-slate-400 font-medium leading-relaxed pl-7">
+                                            <p className="text-slate-400 text-xs sm:text-sm font-medium leading-relaxed pl-7">
                                                 {faq.answer}
                                             </p>
-                                        </div>
+                                        </motion.div>
                                     ))}
                                 </div>
-                            </section>
+                            </motion.section>
                         )}
                     </div>
 
                     {/* Right Column: Actions & Sidebar */}
-                    <div className="lg:col-span-4 flex flex-col gap-8 lg:sticky lg:top-18 h-fit">
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="hidden"
+                        animate="visible"
+                        className="lg:col-span-4 flex flex-col gap-8 lg:sticky lg:top-18 h-fit"
+                    >
                         {/* Registration Card */}
-                        <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative z-10">
+                        <motion.div variants={fadeInUp} className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative z-10">
                             <div className="flex justify-between items-center mb-8">
-                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase ${event.registrationType === 'Free' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest ${event.registrationType === 'Free' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
                                     {event.registrationType} Registration
                                 </span>
                                 {event.registrationType === 'Paid' && (
@@ -328,10 +390,10 @@ export default function EventDetails() {
 
                             {event.pricingDetails && (
                                 <div className="mb-6 p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
-                                    <p className="text-[10px] text-indigo-400 font-black uppercase tracking-widest mb-2 flex items-center gap-2">
+                                    <p className="text-[10px] text-indigo-400 font-black tracking-widest mb-2 flex items-center gap-2">
                                         <Info size={12} /> Pricing Note
                                     </p>
-                                    <p className="text-xs text-slate-400 leading-relaxed">{event.pricingDetails}</p>
+                                    <p className="text-[10px] text-slate-400 font-black leading-relaxed">{event.pricingDetails}</p>
                                 </div>
                             )}
 
@@ -345,7 +407,6 @@ export default function EventDetails() {
                                         }
 
                                         try {
-                                            // Save interaction to Firestore
                                             await addDoc(collection(db, 'user_interactions'), {
                                                 userId: auth.currentUser.uid,
                                                 userEmail: auth.currentUser.email,
@@ -353,7 +414,7 @@ export default function EventDetails() {
                                                 itemId: event.id,
                                                 itemTitle: event.title,
                                                 itemLocation: event.mode || 'Online',
-                                                itemLogo: event.posterLink, // Use poster as representation
+                                                itemLogo: event.posterLink,
                                                 timestamp: serverTimestamp()
                                             });
 
@@ -363,15 +424,15 @@ export default function EventDetails() {
                                             window.open(event.registrationLink, '_blank');
                                         }
                                     }}
-                                    className="col-span-1 py-4 bg-gradient-to-r from-sky-400 to-indigo-600 text-white font-black text-xs rounded-2xl hover:shadow-[0_0_30px_rgba(56,189,248,0.4)] transition-all hover:scale-[1.05] active:scale-95 flex items-center justify-center gap-2"
+                                    className="col-span-1 py-4 bg-gradient-to-r from-sky-400 to-indigo-600 text-white font-black text-[10px] tracking-widest rounded-2xl hover:shadow-[0_0_30px_rgba(56,189,248,0.4)] transition-all hover:scale-[1.05] active:scale-95 flex items-center justify-center gap-2"
                                 >
-                                    Register <ExternalLink size={16} />
+                                    Register <ExternalLink size={14} />
                                 </button>
                                 <button
                                     onClick={handleShare}
-                                    className="col-span-1 py-4 bg-white/5 hover:bg-white text-white hover:text-black border border-white/10 rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2"
+                                    className="col-span-1 py-4 bg-white/5 hover:bg-white text-white hover:text-black border border-white/10 rounded-2xl font-black text-[10px] tracking-widest transition-all flex items-center justify-center gap-2"
                                 >
-                                    Share <Share2 size={16} />
+                                    Share <Share2 size={14} />
                                 </button>
                             </div>
 
@@ -381,16 +442,16 @@ export default function EventDetails() {
                                         <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400">
                                             <CheckCircle size={18} />
                                         </div>
-                                        <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Certification Details</span>
+                                        <span className="text-[10px] text-slate-500 font-black tracking-widest">Certification Details</span>
                                     </div>
                                     <div className="grid grid-cols-1 gap-3">
                                         <div className="flex justify-between items-center bg-white/5 px-4 py-2.5 rounded-xl">
-                                            <span className="text-[10px] text-slate-400 font-bold uppercase">For Winners</span>
-                                            <span className="text-white font-black text-xs">{event.certificateWinners}</span>
+                                            <span className="text-[10px] text-slate-400 font-bold">For Winners</span>
+                                            <span className="text-white font-black text-[10px]">{event.certificateWinners}</span>
                                         </div>
                                         <div className="flex justify-between items-center bg-white/5 px-4 py-2.5 rounded-xl">
-                                            <span className="text-[10px] text-slate-400 font-bold uppercase">For Participants</span>
-                                            <span className="text-white font-black text-xs">{event.certificateParticipants}</span>
+                                            <span className="text-[10px] text-slate-400 font-bold">For Participants</span>
+                                            <span className="text-white font-black text-[10px]">{event.certificateParticipants}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -406,43 +467,43 @@ export default function EventDetails() {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Organizer Card */}
-                        <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 shadow-2xl">
-                            <h3 className="text-xs font-black text-sky-400 uppercase tracking-[0.2em] mb-8">Organizer Information</h3>
+                        <motion.div variants={fadeInUp} className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 shadow-2xl">
+                            <h3 className="text-[10px] font-black text-sky-400 tracking-[0.2em] mb-8">Organizer Information</h3>
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4">
                                     <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
                                         <User className="text-slate-500 w-6 h-6" />
                                     </div>
                                     <div className="min-w-0">
-                                        <h4 className="text-white font-black truncate">{event.organizerName}</h4>
-                                        <p className="text-[10px] text-sky-400 font-black uppercase tracking-widest">{event.organizerDesignation}</p>
+                                        <h4 className="text-white font-black truncate text-sm">{event.organizerName}</h4>
+                                        <p className="text-[9px] text-sky-400 font-black tracking-widest">{event.organizerDesignation}</p>
                                     </div>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-6 border-t border-white/5">
-                                    <div className="flex items-center gap-2 text-slate-400 text-xs">
+                                    <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold">
                                         <Mail size={14} className="text-sky-400 shrink-0" /> <span className="truncate">{event.organizerEmail}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-slate-400 text-xs">
+                                    <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold">
                                         <Phone size={14} className="text-indigo-400 shrink-0" /> <span>{event.organizerPhone}</span>
                                     </div>
                                 </div>
                                 {event.contactInfo && (
                                     <div className="pt-6 border-t border-white/5">
-                                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-3">Support Channel</p>
-                                        <p className="text-white text-[11px] leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5 italic">
+                                        <p className="text-[10px] text-slate-500 font-black tracking-widest mb-3">Support Channel</p>
+                                        <p className="text-white text-[10px] font-black leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5 italic">
                                             "{event.contactInfo}"
                                         </p>
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Brochure Link */}
                         {event.brochureLink && (
-                            <div className="p-1 px-1 rounded-3xl bg-gradient-to-r from-sky-500/20 via-indigo-500/20 to-purple-500/20">
+                            <motion.div variants={fadeInUp} className="p-1 px-1 rounded-3xl bg-gradient-to-r from-sky-500/20 via-indigo-500/20 to-purple-500/20">
                                 <a
                                     href={event.brochureLink}
                                     target="_blank"
@@ -454,17 +515,18 @@ export default function EventDetails() {
                                             <Info size={20} />
                                         </div>
                                         <div>
-                                            <p className="text-white font-bold text-sm">Event Brochure</p>
-                                            <p className="text-[10px] text-slate-500 uppercase font-black">Download PDF</p>
+                                            <p className="text-white font-black text-xs">Event Brochure</p>
+                                            <p className="text-[9px] text-slate-500 font-black">Download PDF</p>
                                         </div>
                                     </div>
                                     <ExternalLink size={18} className="text-slate-500 group-hover:text-white transition-colors" />
                                 </a>
-                            </div>
+                            </motion.div>
                         )}
-                    </div>
+                    </motion.div>
                 </div>
             </div>
+            <div className="h-32"></div>
         </div>
     );
 }

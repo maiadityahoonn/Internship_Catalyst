@@ -23,12 +23,32 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { getOptimizedImageUrl } from '../utils/imageUtils';
 
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 100, damping: 20 },
+  },
+};
+
 export default function Events() {
   // State management
   const [events, setEvents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Added error state
+  const [error, setError] = useState(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Filter states
@@ -38,8 +58,7 @@ export default function Events() {
   // Fetch Events from Firestore
   useEffect(() => {
     setLoading(true);
-    setError(null); // Clear previous errors
-    // Filter by status: 'approved' at the query level for security and efficiency
+    setError(null);
     const q = query(
       collection(db, 'events'),
       where('status', '==', 'approved'),
@@ -52,7 +71,6 @@ export default function Events() {
         ...doc.data()
       }));
 
-      // Subtle Sort: Featured first, then by date
       data.sort((a, b) => {
         if (a.isFeatured && !b.isFeatured) return -1;
         if (!a.isFeatured && b.isFeatured) return 1;
@@ -71,7 +89,7 @@ export default function Events() {
     return () => unsubscribe();
   }, []);
 
-  // Filter Logic (Search and Category)
+  // Filter Logic
   const filteredEvents = events.filter(event => {
     const now = new Date();
     const startDate = event.startDate ? new Date(event.startDate) : null;
@@ -96,17 +114,8 @@ export default function Events() {
     setSearchTerm('');
   };
 
-  const getCategoryIcon = (cat) => {
-    switch (cat?.toLowerCase()) {
-      case 'hackathon': return <Trophy className="w-4 h-4" />;
-      case 'workshop': return <Users className="w-4 h-4" />;
-      case 'webinar': return <Video className="w-4 h-4" />;
-      default: return <Tag className="w-4 h-4" />;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#020617] text-white pt-32 pb-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-sky-500/30 overflow-x-hidden">
+    <div className="min-h-screen bg-[#020617] text-white pt-24 md:pt-32 pb-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-sky-500/30 overflow-x-hidden">
       <SEO title="Events" />
 
       {/* Background Decorative Elements */}
@@ -118,43 +127,58 @@ export default function Events() {
       <div className="max-w-7xl mx-auto relative z-10">
 
         {/* HERO SECTION */}
-        <div className="relative mb-16 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold uppercase tracking-widest mb-6 shadow-glow">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.1 }}
+          className="relative mb-16 text-center"
+        >
+          <motion.div variants={fadeInUp}>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold tracking-widest mb-6 shadow-glow">
               <Calendar className="w-4 h-4" /> Elite Tech Events
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight">
-              <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Next-Gen </span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400">Tech Events</span>
-            </h1>
-            <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 font-light leading-relaxed">
-              Join elite hackathons, workshops, and conferences. Level up your skills and connect with the global tech community.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                to="/event/add"
-                className="w-full sm:w-auto group px-8 py-4 bg-white text-black rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-sky-400 transition-all shadow-xl shadow-white/5 hover:shadow-sky-500/20 active:scale-95"
-              >
-                <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                Host Your Event
-              </Link>
-              <button
-                onClick={() => window.scrollTo({ top: window.innerHeight * 0.8, behavior: 'smooth' })}
-                className="w-full sm:w-auto px-8 py-4 bg-slate-900/50 backdrop-blur-md border border-white/10 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-white/5 transition-all"
-              >
-                Browse Events <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
           </motion.div>
-        </div>
+
+          <motion.h1
+            variants={fadeInUp}
+            className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 tracking-tighter leading-tight"
+          >
+            <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Next-Gen </span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400">Tech Events</span>
+          </motion.h1>
+
+          <motion.p
+            variants={fadeInUp}
+            className="text-sm md:text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed font-medium"
+          >
+            Join elite hackathons, workshops, and conferences. Level up your skills and connect with the global tech community.
+          </motion.p>
+
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              to="/event/add"
+              className="w-full sm:w-auto group px-8 py-4 bg-white text-black rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-sky-400 transition-all shadow-xl shadow-white/5 hover:shadow-sky-500/20 active:scale-95"
+            >
+              <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+              Host Your Event
+            </Link>
+            <button
+              onClick={() => window.scrollTo({ top: window.innerHeight * 0.8, behavior: 'smooth' })}
+              className="w-full sm:w-auto px-8 py-4 bg-slate-900/50 backdrop-blur-md border border-white/10 text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-white/5 transition-all"
+            >
+              Browse Events <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </motion.div>
+        </motion.div>
 
         {/* SEARCH & FILTERS BAR */}
-        <div className="sticky top-20 md:top-24 z-40 mb-16 px-2">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false }}
+          className="sticky top-20 md:top-24 z-40 mb-16 px-2"
+        >
           <div className="bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-1.5 md:p-2 shadow-2xl flex flex-col md:flex-row gap-2 max-w-5xl mx-auto">
             <div className="relative flex-1 group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 group-focus-within:text-sky-400 transition-colors" />
@@ -192,7 +216,7 @@ export default function Events() {
               {(category !== 'all' || status !== 'all' || searchTerm !== '') && (
                 <button
                   onClick={clearFilters}
-                  className="px-4 py-2 text-rose-400 hover:text-rose-300 text-xs font-black uppercase tracking-widest transition-colors"
+                  className="px-4 py-2 text-rose-400 hover:text-rose-300 text-xs font-black tracking-widest transition-colors"
                 >
                   Clear
                 </button>
@@ -217,7 +241,7 @@ export default function Events() {
               >
                 <div className="space-y-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Category</label>
+                    <label className="text-[10px] font-black tracking-widest text-slate-500 mb-2 block">Category</label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
@@ -231,7 +255,7 @@ export default function Events() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Status</label>
+                    <label className="text-[10px] font-black tracking-widest text-slate-500 mb-2 block">Status</label>
                     <select
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
@@ -245,13 +269,13 @@ export default function Events() {
                   </div>
                   <div className="flex gap-2 pt-2">
                     <button onClick={clearFilters} className="flex-1 p-3 bg-rose-500/10 text-rose-400 rounded-xl font-bold text-sm">Clear Filters</button>
-                    <button onClick={() => setShowMobileFilters(false)} className="flex-1 p-3 bg-sky-500 text-black rounded-xl font-black text-sm uppercase tracking-widest">Apply</button>
+                    <button onClick={() => setShowMobileFilters(false)} className="flex-1 p-3 bg-sky-500 text-black rounded-xl font-black text-sm tracking-widest">Apply</button>
                   </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </motion.div>
 
         {/* EVENTS GRID */}
         {loading ? (
@@ -267,15 +291,8 @@ export default function Events() {
             </div>
             <h3 className="text-2xl font-black text-white mb-3">Database Connection Issue</h3>
             <p className="text-slate-400 mb-6 leading-relaxed">
-              {error.includes('index')
-                ? "The database requires an index to sort events by date. Please click the link in your console to create it."
-                : error}
+              {error}
             </p>
-            {error.includes('index') && (
-              <div className="p-4 bg-sky-500/10 border border-sky-500/20 rounded-2xl text-sky-400 text-sm font-bold">
-                Manual Action Required: Check browser console for the Firebase index creation link.
-              </div>
-            )}
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="text-center py-20 bg-slate-900/20 border border-white/5 rounded-[3rem] backdrop-blur-sm">
@@ -284,17 +301,19 @@ export default function Events() {
             </div>
             <h3 className="text-2xl font-black text-white mb-2">No events found</h3>
             <p className="text-slate-400">Try adjusting your filters or stay tuned for updates.</p>
-            <p className="text-sky-400/60 text-xs mt-6 font-medium italic">
-              Note: New events require admin approval before they appear here.
-            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+          >
             {filteredEvents.map((event) => (
               <motion.div
                 layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
+                variants={fadeInUp}
                 whileHover={{ y: -8 }}
                 key={event.id}
                 className="group relative bg-[#0B1120] border border-white/5 rounded-[1.5rem] md:rounded-[2rem] overflow-hidden hover:border-sky-500/30 transition-all duration-500"
@@ -315,7 +334,7 @@ export default function Events() {
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60"></div>
-                      <div className="absolute bottom-4 left-6 px-4 py-1.5 rounded-full bg-sky-500 text-black text-[10px] font-black tracking-widest uppercase">
+                      <div className="absolute bottom-4 left-6 px-4 py-1.5 rounded-full bg-sky-500 text-black text-[10px] font-black tracking-widest">
                         {event.category || 'General'}
                       </div>
                     </div>
@@ -323,15 +342,15 @@ export default function Events() {
                     {/* Content Section */}
                     <div className="p-8 flex flex-col flex-grow space-y-6">
                       <div className="space-y-3">
-                        <h2 className="text-2xl font-black text-white group-hover:text-sky-400 transition-colors line-clamp-1">
+                        <motion.h2 variants={fadeInUp} className="text-xl md:text-2xl font-black text-white group-hover:text-sky-400 transition-colors line-clamp-1 tracking-tight">
                           {event.title}
-                        </h2>
-                        <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed font-medium">
+                        </motion.h2>
+                        <motion.p variants={fadeInUp} className="text-sm md:text-base text-slate-400 line-clamp-2 leading-relaxed font-medium">
                           {event.description}
-                        </p>
+                        </motion.p>
                       </div>
 
-                      <div className="space-y-4 pt-4">
+                      <motion.div variants={fadeInUp} className="space-y-4 pt-4">
                         <div className="flex items-center gap-3 text-sm text-slate-300">
                           <div className="w-8 h-8 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400 border border-sky-500/20">
                             <Calendar className="w-4 h-4" />
@@ -346,21 +365,21 @@ export default function Events() {
                           </div>
                           <span className="font-bold truncate">{event.mode || 'Online'} • {event.country || 'Global'}</span>
                         </div>
-                      </div>
+                      </motion.div>
 
-                      <div className="pt-6 border-t border-white/5 mt-auto flex items-center justify-between">
+                      <motion.div variants={fadeInUp} className="pt-6 border-t border-white/5 mt-auto flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Registration Open</span>
+                          <span className="text-[10px] font-black text-emerald-400 tracking-widest">Registration Open</span>
                         </div>
                         <ArrowRight className="w-5 h-5 text-slate-600 group-hover:text-sky-400 group-hover:translate-x-1 transition-all" />
-                      </div>
+                      </motion.div>
                     </div>
                   </div>
                 </Link>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
 

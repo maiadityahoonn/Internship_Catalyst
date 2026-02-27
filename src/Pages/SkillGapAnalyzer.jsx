@@ -23,6 +23,7 @@ import {
   Hammer,
   Clock,
   Shield,
+  Globe,
 } from "lucide-react";
 import { FaLock, FaShieldAlt } from "react-icons/fa";
 import { auth } from "../firebase";
@@ -75,6 +76,26 @@ const DIFFICULTY_CONFIG = {
   Beginner: { color: "text-emerald-400", bg: "bg-emerald-500/10" },
   Intermediate: { color: "text-amber-400", bg: "bg-amber-500/10" },
   Advanced: { color: "text-rose-400", bg: "bg-rose-500/10" },
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 100, damping: 20 },
+  },
 };
 
 export default function SkillGapAnalyzer() {
@@ -202,60 +223,64 @@ export default function SkillGapAnalyzer() {
           />
         </div>
 
-        <div className="max-w-6xl mx-auto relative z-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto relative z-10 px-4 sm:px-6 lg:px-8">
           {/* 🚀 HERO */}
-          <div className="text-center mb-12 md:mb-20">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.1 }}
+            className="text-center mb-20"
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold uppercase tracking-widest mb-6 backdrop-blur-md"
+              variants={fadeInUp}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold tracking-widest mb-6 backdrop-blur-md"
             >
-              <FaShieldAlt className="animate-pulse" size={14} /> Career Trajectory Audit
+              <FaShieldAlt className="animate-pulse" size={14} /> Job Skills Check
             </motion.div>
             <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-5xl sm:text-7xl font-black mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400"
+              variants={fadeInUp}
+              className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 tracking-tighter leading-tight"
             >
-              Skill Gap <span className="text-purple-500">Analyzer</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Skills Gap </span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400">Checker</span>
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-slate-400 text-base md:text-lg lg:text-xl max-w-2xl mx-auto font-light leading-relaxed mb-8 px-4"
+              variants={fadeInUp}
+              className="text-sm md:text-lg text-slate-400 max-w-3xl mx-auto font-medium leading-relaxed mb-8 px-4"
             >
-              Identify your technical blind spots and build a 100% match roadmap.
+              Find out what you need to learn to get your dream job.
             </motion.p>
-          </div>
+          </motion.div>
 
           {/* PAYWALL OVERLAY */}
           <AnimatePresence>
             {isLocked && (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 className="relative z-50 p-8 sm:p-12 rounded-[2.5rem] bg-slate-900/60 backdrop-blur-2xl border border-white/10 text-center overflow-hidden mb-12"
               >
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-500/5 blur-3xl -z-10"></div>
                 <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mx-auto mb-6 shadow-lg shadow-amber-500/10">
                   <FaLock size={24} />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black mb-3 uppercase tracking-tight text-white">Analysis Restricted</h2>
+                <h2 className="text-xl sm:text-2xl font-black mb-3 tracking-tight text-white">Access Denied</h2>
                 <p className="text-slate-400 text-xs sm:text-sm max-w-sm mx-auto mb-8 font-medium leading-relaxed">
-                  The Skill Gap Intelligence system is a premium protocol. Unlock full access to audit your career trajectory for <span className="text-white font-black">₹{PRICING['skill-gap'].sale}</span>.
+                  The Skills Gap Checker is a premium tool. Unlock full access to see your career growth for <span className="text-white font-black">₹{PRICING['skill-gap'].sale}</span>.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <button
                     onClick={handlePayment}
-                    className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black uppercase tracking-widest text-[10px] hover:shadow-xl hover:shadow-purple-500/20 transition-all w-full sm:w-auto"
+                    className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black tracking-widest text-[10px] hover:shadow-xl hover:shadow-purple-500/20 transition-all w-full sm:w-auto"
                   >
                     Unlock Now
                   </button>
                   <button
                     onClick={() => navigate('/ai')}
-                    className="px-8 py-3.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all w-full sm:w-auto"
+                    className="px-8 py-3.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-black tracking-widest text-[10px] hover:bg-white/10 transition-all w-full sm:w-auto"
                   >
                     Back to Hub
                   </button>
@@ -267,13 +292,14 @@ export default function SkillGapAnalyzer() {
           {!isLocked && (
             <>
               <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false, amount: 0.1 }}
                 className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8"
               >
                 {/* CURRENT SKILLS */}
-                <div className="relative group">
+                <motion.div variants={fadeInUp} className="relative group">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-[2rem] blur opacity-0 group-hover:opacity-40 transition duration-500" />
                   <div className="relative bg-slate-900/50 backdrop-blur-xl border border-white/5 group-hover:border-purple-500/30 rounded-[2rem] p-6 sm:p-8 transition-all duration-300">
                     <div className="flex items-center gap-3 mb-4">
@@ -281,7 +307,7 @@ export default function SkillGapAnalyzer() {
                         <Code2 className="text-purple-400" size={18} />
                       </div>
                       <div>
-                        <h2 className="text-sm font-black uppercase tracking-tight text-white">
+                        <h2 className="text-sm font-black tracking-tight text-white">
                           Your Current Skills
                         </h2>
                         <p className="text-[10px] text-slate-500 font-medium">
@@ -314,7 +340,7 @@ export default function SkillGapAnalyzer() {
                                 );
                               }
                             }}
-                            className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 hover:text-purple-400 hover:border-purple-500/30 transition-all uppercase tracking-wider"
+                            className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 hover:text-purple-400 hover:border-purple-500/30 transition-all tracking-wider"
                           >
                             + {skill}
                           </button>
@@ -322,10 +348,10 @@ export default function SkillGapAnalyzer() {
                       )}
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* TARGET ROLE */}
-                <div className="relative group">
+                <motion.div variants={fadeInUp} className="relative group">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500/20 to-rose-500/20 rounded-[2rem] blur opacity-0 group-hover:opacity-40 transition duration-500" />
                   <div className="relative bg-slate-900/50 backdrop-blur-xl border border-white/5 group-hover:border-pink-500/30 rounded-[2rem] p-6 sm:p-8 transition-all duration-300">
                     <div className="flex items-center gap-3 mb-4">
@@ -333,7 +359,7 @@ export default function SkillGapAnalyzer() {
                         <Target className="text-pink-400" size={18} />
                       </div>
                       <div>
-                        <h2 className="text-sm font-black uppercase tracking-tight text-white">
+                        <h2 className="text-sm font-black tracking-tight text-white">
                           Target Role
                         </h2>
                         <p className="text-[10px] text-slate-500 font-medium">
@@ -357,11 +383,11 @@ export default function SkillGapAnalyzer() {
                       ))}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
 
               {/* ERROR */}
-              < AnimatePresence >
+              <AnimatePresence>
                 {error && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -371,18 +397,17 @@ export default function SkillGapAnalyzer() {
                   >
                     <XCircle size={16} /> {error}
                   </motion.div>
-                )
-                }
-              </AnimatePresence >
+                )}
+              </AnimatePresence>
 
               {/* ANALYZE BUTTON */}
-              < div className="text-center mb-16" >
+              <div className="text-center mb-16">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleAnalyze}
                   disabled={loading}
-                  className="relative inline-flex items-center gap-3 px-10 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black uppercase tracking-widest text-sm hover:shadow-2xl hover:shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative inline-flex items-center gap-3 px-10 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black tracking-widest text-sm hover:shadow-2xl hover:shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <>
@@ -397,10 +422,10 @@ export default function SkillGapAnalyzer() {
                     </>
                   )}
                 </motion.button>
-              </div >
+              </div>
 
               {/* 🧠 LOADING ANIMATION */}
-              < AnimatePresence >
+              <AnimatePresence>
                 {loading && (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -420,20 +445,20 @@ export default function SkillGapAnalyzer() {
                           <Brain className="text-purple-400" size={28} />
                         </motion.div>
 
-                        <h3 className="text-lg font-black mb-2 text-white">
+                        <h3 className="text-xl md:text-2xl font-black mb-2 text-white tracking-tight">
                           Neural Analysis in Progress
                         </h3>
                         <p className="text-slate-500 text-xs font-medium mb-6">
-                          Scanning job market data, comparing skill profiles, building your roadmap...
+                          Checking your skills and finding what you need to learn...
                         </p>
 
                         {/* Progress Steps */}
                         <div className="flex flex-col gap-3 text-left max-w-xs mx-auto">
                           {[
-                            "Parsing your skill set...",
-                            "Matching against industry benchmarks...",
-                            "Generating personalized roadmap...",
-                            "Finding project recommendations...",
+                            "Checking your skills...",
+                            "Matching with job requirements...",
+                            "Building your learning plan...",
+                            "Finding project ideas...",
                           ].map((step, i) => (
                             <motion.div
                               key={i}
@@ -457,10 +482,10 @@ export default function SkillGapAnalyzer() {
                     </div>
                   </motion.div>
                 )}
-              </AnimatePresence >
+              </AnimatePresence>
 
               {/* 📊 RESULTS SECTION */}
-              < AnimatePresence >
+              <AnimatePresence>
                 {result && (
                   <motion.div
                     ref={resultRef}
@@ -522,7 +547,7 @@ export default function SkillGapAnalyzer() {
                               >
                                 {result.matchScore}%
                               </motion.span>
-                              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                              <span className="text-[9px] font-bold text-slate-500 tracking-widest">
                                 Match
                               </span>
                             </div>
@@ -530,7 +555,7 @@ export default function SkillGapAnalyzer() {
 
                           {/* SCORE DETAILS */}
                           <div className="flex-1 text-center md:text-left">
-                            <h2 className="text-2xl sm:text-3xl font-black mb-2 tracking-tight">
+                            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-black mb-2 tracking-tight">
                               {getScoreLabel(result.matchScore)}
                             </h2>
                             <p className="text-slate-400 text-sm font-medium mb-4 leading-relaxed max-w-lg">
@@ -579,7 +604,7 @@ export default function SkillGapAnalyzer() {
                         <button
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
-                          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${activeTab === tab.id
+                          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all ${activeTab === tab.id
                             ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-white"
                             : "bg-white/[0.02] border border-white/5 text-slate-500 hover:text-white"
                             }`}
@@ -601,12 +626,12 @@ export default function SkillGapAnalyzer() {
                           className="grid grid-cols-1 lg:grid-cols-2 gap-6"
                         >
                           {/* MATCHED SKILLS */}
-                          <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 sm:p-8">
+                          <motion.div variants={fadeInUp} className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 sm:p-8">
                             <div className="flex items-center gap-3 mb-6">
                               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                                 <CheckCircle2 className="text-emerald-400" size={18} />
                               </div>
-                              <h3 className="text-sm font-black uppercase tracking-tight">
+                              <h3 className="text-base md:text-lg font-black tracking-tight">
                                 Matched Skills
                               </h3>
                             </div>
@@ -625,7 +650,7 @@ export default function SkillGapAnalyzer() {
                                       {skill.name}
                                     </span>
                                   </div>
-                                  <span className="text-[10px] font-bold text-emerald-400/70 uppercase tracking-wider">
+                                  <span className="text-[10px] font-bold text-emerald-400/70 tracking-wider">
                                     {skill.level}
                                   </span>
                                 </motion.div>
@@ -636,15 +661,15 @@ export default function SkillGapAnalyzer() {
                                 </p>
                               )}
                             </div>
-                          </div>
+                          </motion.div>
 
                           {/* MISSING SKILLS */}
-                          <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 sm:p-8">
+                          <motion.div variants={fadeInUp} className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 sm:p-8">
                             <div className="flex items-center gap-3 mb-6">
                               <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
                                 <XCircle className="text-rose-400" size={18} />
                               </div>
-                              <h3 className="text-sm font-black uppercase tracking-tight">
+                              <h3 className="text-base md:text-lg font-black tracking-tight">
                                 Missing Skills
                               </h3>
                             </div>
@@ -665,7 +690,7 @@ export default function SkillGapAnalyzer() {
                                         {config.icon} {skill.name}
                                       </span>
                                       <span
-                                        className={`text-[10px] font-bold uppercase tracking-wider ${config.color}`}
+                                        className={`text-[10px] font-bold tracking-wider ${config.color}`}
                                       >
                                         {skill.priority}
                                       </span>
@@ -677,7 +702,7 @@ export default function SkillGapAnalyzer() {
                                 );
                               })}
                             </div>
-                          </div>
+                          </motion.div>
                         </motion.div>
                       )}
 
@@ -708,19 +733,19 @@ export default function SkillGapAnalyzer() {
                                   </div>
 
                                   {/* Content Card */}
-                                  <div className="flex-1 bg-slate-900/50 backdrop-blur-xl border border-white/5 hover:border-purple-500/20 rounded-[2rem] p-6 sm:p-8 transition-all duration-300">
+                                  <motion.div variants={fadeInUp} className="flex-1 bg-slate-900/50 backdrop-blur-xl border border-white/5 hover:border-purple-500/20 rounded-[2rem] p-6 sm:p-8 transition-all duration-300">
                                     <div className="flex items-center gap-3 mb-4">
                                       <div className="flex sm:hidden shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 items-center justify-center text-[10px] font-black text-white">
                                         {i + 1}
                                       </div>
                                       <div className="px-3 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20">
-                                        <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1">
+                                        <span className="text-[10px] font-bold text-purple-400 tracking-wider flex items-center gap-1">
                                           <Clock size={10} /> {phase.week}
                                         </span>
                                       </div>
                                     </div>
 
-                                    <h4 className="text-base font-black mb-3 text-white tracking-tight">
+                                    <h4 className="text-base md:text-lg font-black mb-3 text-white tracking-tight">
                                       {phase.title}
                                     </h4>
 
@@ -746,7 +771,7 @@ export default function SkillGapAnalyzer() {
                                         {phase.goal}
                                       </p>
                                     </div>
-                                  </div>
+                                  </motion.div>
                                 </motion.div>
                               ))}
                             </div>
@@ -769,9 +794,7 @@ export default function SkillGapAnalyzer() {
                             return (
                               <motion.div
                                 key={i}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.15 }}
+                                variants={fadeInUp}
                                 className="relative group"
                               >
                                 <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-[2rem] blur opacity-0 group-hover:opacity-40 transition duration-500" />
@@ -782,7 +805,7 @@ export default function SkillGapAnalyzer() {
                                       <Hammer className="text-purple-400" size={20} />
                                     </div>
                                     <span
-                                      className={`px-3 py-1 rounded-lg ${diffConfig.bg} text-[10px] font-bold uppercase tracking-wider ${diffConfig.color}`}
+                                      className={`px-3 py-1 rounded-lg ${diffConfig.bg} text-[10px] font-bold tracking-wider ${diffConfig.color}`}
                                     >
                                       {project.difficulty}
                                     </span>
@@ -800,7 +823,7 @@ export default function SkillGapAnalyzer() {
                                     {(project.skillsCovered || []).map((skill, j) => (
                                       <span
                                         key={j}
-                                        className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[9px] font-bold text-slate-400 uppercase tracking-wider"
+                                        className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[9px] font-bold text-slate-400 tracking-wider"
                                       >
                                         {skill}
                                       </span>
@@ -815,15 +838,16 @@ export default function SkillGapAnalyzer() {
                     </AnimatePresence>
                   </motion.div>
                 )}
-              </AnimatePresence >
+              </AnimatePresence>
 
               {/* NO API KEY INFO */}
               {
                 !result && !loading && (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
+                    variants={staggerContainer}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: false, amount: 0.1 }}
                     className="max-w-3xl mx-auto"
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -844,30 +868,98 @@ export default function SkillGapAnalyzer() {
                           desc: "A personalized week-by-week learning plan to reach your goal.",
                         },
                       ].map((feature, i) => (
-                        <div
+                        <motion.div
                           key={i}
+                          variants={fadeInUp}
                           className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 text-center"
                         >
                           <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
                             {feature.icon}
                           </div>
-                          <h4 className="text-xs font-black uppercase tracking-tight mb-1 text-white">
+                          <h4 className="text-xs font-black tracking-tight mb-1 text-white">
                             {feature.title}
                           </h4>
                           <p className="text-[11px] text-slate-500 font-medium">{feature.desc}</p>
-                        </div>
+                        </motion.div>
                       ))}
                     </div>
                   </motion.div>
                 )
               }
             </>
-          )
-          }
-        </div >
+          )}
+          {/* 📘 EDUCATIONAL CONTENT SECTION */}
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.1 }}
+            className="mt-24 space-y-16"
+          >
+            {/* 1. Job Growth Info */}
+            <motion.section variants={fadeInUp} className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-[3rem] blur opacity-50" />
+              <div className="relative bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[3rem] p-8 md:p-12">
+                <div className="flex flex-col md:flex-row gap-12 items-start">
+                  <div className="md:w-1/3">
+                    <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-6">
+                      <TrendingUp size={28} />
+                    </div>
+                    <h2 className="text-3xl font-black mb-4 tracking-tight uppercase">Job <br /> Growth Info</h2>
+                    <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                      Understanding the long-term potential of your chosen role is as important as learning the skills.
+                    </p>
+                  </div>
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {[
+                      { title: "Future Proof", desc: "How likely is this role to stay important with AI and other changes?", icon: <Shield size={18} /> },
+                      { title: "Earning Potential", desc: "How much can you earn as you get more experience?", icon: <Zap size={18} /> },
+                      { title: "Changing Roles", desc: "Can you easily move to other jobs or departments later?", icon: <Layers size={18} /> },
+                      { title: "Global Demand", desc: "How popular are these skills in other countries?", icon: <Globe size={18} /> }
+                    ].map((item, i) => (
+                      <div key={i} className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-purple-500/20 transition-all group/item">
+                        <div className="text-purple-500 mb-4 group-hover/item:scale-110 transition-transform">{item.icon}</div>
+                        <h4 className="text-sm font-black mb-2 text-white">{item.title}</h4>
+                        <p className="text-xs text-slate-500 font-medium leading-relaxed">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.section>
 
-        <div className="h-20" />
-      </div >
-    </MainLayout >
+            {/* 2. Top Skills for 2026 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                { title: "AI Basics", desc: "Understanding AI tools is now a basic requirement for most jobs.", icon: <Brain size={20} />, color: "text-sky-400", bg: "bg-sky-500/5" },
+                { title: "Special Skills", desc: "Expertise in one specific area is more valuable than being a generalist.", icon: <Target size={20} />, color: "text-pink-400", bg: "bg-pink-500/5" },
+                { title: "Teamwork", desc: "Clear communication and teamwork are the most important soft skills.", icon: <Sparkles size={20} />, color: "text-amber-400", bg: "bg-amber-500/5" }
+              ].map((trend, i) => (
+                <motion.div key={i} variants={fadeInUp} className={`p-8 rounded-[2.5rem] border border-white/5 ${trend.bg}`}>
+                  <div className={`${trend.color} mb-6`}>{trend.icon}</div>
+                  <h3 className="text-lg font-black mb-3">{trend.title}</h3>
+                  <p className="text-xs text-slate-400 font-medium leading-relaxed">{trend.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* 3. Success Roadmap Guide */}
+            <motion.section variants={fadeInUp} className="p-8 md:p-12 rounded-[3rem] bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-white/5 text-center">
+              <h3 className="text-2xl font-black mb-8 tracking-tight">How to use your Roadmap?</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-left max-w-3xl mx-auto">
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black text-purple-400 tracking-widest uppercase">The 80/20 Rule</h4>
+                  <p className="text-xs text-slate-300 leading-relaxed font-medium">Focus on the 'Critical' skills first. They will give you 80% of the results.</p>
+                </div>
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black text-pink-400 tracking-widest uppercase">Quick Learning</h4>
+                  <p className="text-xs text-slate-300 leading-relaxed font-medium">Build small projects as you learn. Don't just watch videos—write code!</p>
+                </div>
+              </div>
+            </motion.section>
+          </motion.div>
+        </div>
+      </div>
+    </MainLayout>
   );
 }

@@ -18,12 +18,92 @@ import {
 
 const ACCESS_DURATION_DAYS = 90;
 
+// LIVE MODE: Paid access enabled
 export const PRICING = {
-    'ats-checker': { actual: 699, sale: 149 },
-    'skill-gap': { actual: 499, sale: 49 },
-    'cover-letter': { actual: 499, sale: 79 },
+    'ats-checker': { actual: 699, sale: 199 },
+    'skill-gap': { actual: 499, sale: 149 },
+    'cover-letter': { actual: 499, sale: 149 },
     'ai-resume': { actual: 0, sale: 0 } // Always free
 };
+
+export const AI_TOOLS = [
+    {
+        id: "ai-resume",
+        title: "AI Resume Builder",
+        description: "Easily make a professional resume that gets you hired.",
+        path: "/ai-resume-templates",
+        features: ["Easy to Use", "Fast Results", "Job Ready"],
+        detailedFeatures: [
+            "10+ Premium Resume Templates",
+            "AI-Powered Content Generation",
+            "One-Click PDF Export",
+            "Applicant Tracking System Optimized",
+            "Section-wise Expert Guidance"
+        ],
+        whyUse: "Our AI Resume Builder uses the same logic as top-tier HR software. It doesn't just format text; it architecturally positions your skills to be scanned and prioritized by hiring managers.",
+        targetAudience: "Best for Freshers and Students looking for their first internship.",
+        color: "from-sky-500/20 to-blue-500/20",
+        accent: "sky",
+        iconName: "Bot"
+    },
+    {
+        id: "ats-checker",
+        title: "ATS Score Checker",
+        description: "Check if your resume can pass company software filters.",
+        path: "/ats-score-checker",
+        features: ["Score Card", "Fix Mistakes", "Keyword Tips"],
+        detailedFeatures: [
+            "Deep Keyword Gap Analysis",
+            "Formatting & Parsing Validation",
+            "Industry Benchmarking Score",
+            "Actionable Fix Recommendations",
+            "Role-Specific Optimization"
+        ],
+        whyUse: "90% of resumes are rejected by software before a human even sees them. Our ATS Checker reverse-engineers these filters to give you a clear score and exact steps to pass the 'bot' filter.",
+        targetAudience: "Essential for students applying to MNCs and competitive Tech companies.",
+        color: "from-indigo-500/20 to-purple-500/20",
+        accent: "indigo",
+        iconName: "Target"
+    },
+    {
+        id: "skill-gap",
+        title: "Skill Gap Analyzer",
+        description: "Find out what skills you need to learn for your dream job.",
+        path: "/skill-gap-analyzer",
+        features: ["Skill Check", "Learn Plan", "Job Goals"],
+        detailedFeatures: [
+            "Custom Learning Roadmap (12 Weeks)",
+            "Priority-Based Skill Ranking",
+            "Project Recommendation Engine",
+            "Week-by-Week Goal Setting",
+            "Current vs Market Match Score"
+        ],
+        whyUse: "Stop guessing what to learn. Our analyzer compares your current profile with thousands of job descriptions from top startups to create a calculated path to employability.",
+        targetAudience: "Designed for students who want to switch domains or level up their technical stack.",
+        color: "from-purple-500/20 to-pink-500/20",
+        accent: "purple",
+        iconName: "Lightbulb"
+    },
+    {
+        id: "cover-letter",
+        title: "AI Cover Letter",
+        description: "Write perfect application letters to impress companies.",
+        path: "/cover-letter-ai",
+        features: ["Match Job", "Pro Tone", "Save Time"],
+        detailedFeatures: [
+            "Context-Aware Content Generation",
+            "Multiple Professional Tones",
+            "Job Description Integration",
+            "Recruiter-Proven Templates",
+            "Unlimited Variations"
+        ],
+        whyUse: "A generic cover letter is a missed opportunity. Our AI analyzes the Job Description and your Resume to craft a narrative that bridges the gap, making you look like the perfect candidate.",
+        targetAudience: "Perfect for students applying for specific, high-priority roles.",
+        color: "from-emerald-500/20 to-teal-500/20",
+        accent: "emerald",
+        iconName: "Zap"
+    }
+];
 
 /**
  * Checks if a specific tool is purchased and still active.

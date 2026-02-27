@@ -6,7 +6,7 @@ export default function ResumePreview({ template, data }) {
 
     // --- HELPER COMPONENTS ---
     const SectionHeader = ({ title, className = "" }) => (
-        <h3 className={`font-bold uppercase tracking-wide border-b border-gray-300 mb-2 pb-1 text-base ${className}`}>{title}</h3>
+        <h3 className={`font-bold tracking-wide border-b border-gray-300 mb-2 pb-1 text-base ${className}`}>{title}</h3>
     );
 
     const DateRange = ({ start, end }) => <span className="text-xs text-gray-500 whitespace-nowrap">{start} - {end}</span>;
@@ -24,12 +24,12 @@ export default function ResumePreview({ template, data }) {
                 {/* SIDEBAR */}
                 <div className="w-80 bg-[#0f172a] text-white p-6 flex flex-col gap-6 flex-shrink-0">
                     <div>
-                        <h1 className="text-4xl font-bold uppercase tracking-wider leading-tight text-white">{data.personalInfo?.fullName || "Your Name"}</h1>
+                        <h1 className="text-4xl font-bold tracking-wider leading-tight text-white">{data.personalInfo?.fullName || "Your Name"}</h1>
                         <p className="text-sky-400 font-medium mt-1 text-base">{data.experience?.[0]?.title || "Professional"}</p>
                     </div>
 
                     <div className="space-y-4 text-xs text-slate-300">
-                        <h3 className="text-white font-bold uppercase border-b border-slate-600 pb-1">Contact</h3>
+                        <h3 className="text-white font-bold border-b border-slate-600 pb-1">Contact</h3>
                         {data.personalInfo?.phone && <div className="flex gap-2 items-center"><FaPhone className="text-sky-500" /> {data.personalInfo.phone}</div>}
                         {data.personalInfo?.email && <div className="flex gap-2 items-center"><FaEnvelope className="text-sky-500" /> {data.personalInfo.email}</div>}
                         {data.personalInfo?.address && <div className="flex gap-2 items-center"><FaMapMarkerAlt className="text-sky-500" /> {data.personalInfo.address}, {data.personalInfo.city}</div>}
@@ -39,7 +39,7 @@ export default function ResumePreview({ template, data }) {
 
                     {data.skills?.length > 0 && (
                         <div className="space-y-2">
-                            <h3 className="text-white font-bold uppercase border-b border-slate-600 pb-1 text-xs">Skills</h3>
+                            <h3 className="text-white font-bold border-b border-slate-600 pb-1 text-xs">Skills</h3>
                             <div className="flex flex-wrap gap-1">
                                 {data.skills.map((s, i) => <span key={i} className="bg-slate-800 px-2 py-0.5 rounded text-[10px] border border-slate-700">{s.name}</span>)}
                             </div>
@@ -48,7 +48,7 @@ export default function ResumePreview({ template, data }) {
 
                     {data.software?.length > 0 && (
                         <div className="space-y-2">
-                            <h3 className="text-white font-bold uppercase border-b border-slate-600 pb-1 text-xs">Software</h3>
+                            <h3 className="text-white font-bold border-b border-slate-600 pb-1 text-xs">Software</h3>
                             <div className="space-y-1">
                                 {data.software.map((s, i) => (
                                     <div key={i} className="text-[10px] flex justify-between"><span>{s.name}</span> <span className="text-slate-500">{s.level}</span></div>
@@ -59,7 +59,7 @@ export default function ResumePreview({ template, data }) {
 
                     {data.languages?.length > 0 && (
                         <div className="space-y-2">
-                            <h3 className="text-white font-bold uppercase border-b border-slate-600 pb-1 text-xs">Languages</h3>
+                            <h3 className="text-white font-bold border-b border-slate-600 pb-1 text-xs">Languages</h3>
                             <div className="text-[10px] flex gap-2 flex-wrap">
                                 {data.languages.map((l, i) => <span key={i}>{l.name}</span>)}
                             </div>
@@ -72,7 +72,7 @@ export default function ResumePreview({ template, data }) {
 
                     {data.experience?.length > 0 && (
                         <div className="space-y-3">
-                            <h3 className="text-slate-800 font-bold text-xl uppercase border-b-2 border-slate-100 pb-1">Experience</h3>
+                            <h3 className="text-slate-800 font-bold border-b-2 border-slate-100 pb-1">Experience</h3>
                             {data.experience.map((exp, i) => (
                                 <div key={i}>
                                     <div className="flex justify-between font-bold text-slate-700 text-base">
@@ -88,7 +88,7 @@ export default function ResumePreview({ template, data }) {
 
                     {data.projects?.length > 0 && (
                         <div className="space-y-3">
-                            <h3 className="text-slate-800 font-bold text-xl uppercase border-b-2 border-slate-100 pb-1">Projects</h3>
+                            <h3 className="text-slate-800 font-bold border-b-2 border-slate-100 pb-1">Projects</h3>
                             {data.projects.map((proj, i) => (
                                 <div key={i} className="text-base">
                                     <div className="font-bold flex justify-between"><span>{proj.title}</span> <span className="text-xs text-slate-400 font-normal">{proj.technologies}</span></div>
@@ -100,7 +100,7 @@ export default function ResumePreview({ template, data }) {
 
                     {data.education?.length > 0 && (
                         <div className="space-y-3">
-                            <h3 className="text-slate-800 font-bold text-xl uppercase border-b-2 border-slate-100 pb-1">Education</h3>
+                            <h3 className="text-slate-800 font-bold border-b-2 border-slate-100 pb-1">Education</h3>
                             {data.education.map((edu, i) => (
                                 <div key={i} className="text-base">
                                     <div className="flex justify-between font-bold text-slate-700">
@@ -118,13 +118,13 @@ export default function ResumePreview({ template, data }) {
                             <div className="grid grid-cols-2 gap-4">
                                 {data.achievements?.length > 0 && (
                                     <div>
-                                        <h3 className="font-bold text-base uppercase text-slate-700 border-b border-slate-100 mb-2">Achievements</h3>
+                                        <h3 className="font-bold text-base text-slate-700 border-b border-slate-100 mb-2">Achievements</h3>
                                         <BulletList items={data.achievements} renderItem={(a) => <span className="text-sm">{a.title}</span>} />
                                     </div>
                                 )}
                                 {data.extracurriculars?.length > 0 && (
                                     <div>
-                                        <h3 className="font-bold text-base uppercase text-slate-700 border-b border-slate-100 mb-2">Activities</h3>
+                                        <h3 className="font-bold text-base text-slate-700 border-b border-slate-100 mb-2">Activities</h3>
                                         <BulletList items={data.extracurriculars} renderItem={(e) => <span className="text-sm">{e.title}</span>} />
                                     </div>
                                 )}
@@ -132,13 +132,13 @@ export default function ResumePreview({ template, data }) {
                             <div className="grid grid-cols-2 gap-4">
                                 {data.certifications?.length > 0 && (
                                     <div>
-                                        <h3 className="font-bold text-base uppercase text-slate-700 border-b border-slate-100 mb-2">Certifications</h3>
+                                        <h3 className="font-bold text-base text-slate-700 border-b border-slate-100 mb-2">Certifications</h3>
                                         <BulletList items={data.certifications} renderItem={(c) => <div className="text-sm leading-tight font-semibold">{c.name} <p className="font-normal text-xs text-slate-500">{c.issuer}</p></div>} />
                                     </div>
                                 )}
                                 {data.volunteerWork?.length > 0 && (
                                     <div>
-                                        <h3 className="font-bold text-base uppercase text-slate-700 border-b border-slate-100 mb-2">Volunteer</h3>
+                                        <h3 className="font-bold text-base text-slate-700 border-b border-slate-100 mb-2">Volunteer</h3>
                                         <BulletList items={data.volunteerWork} renderItem={(v) => <div className="text-sm leading-tight font-semibold">{v.role} <p className="font-normal text-xs text-slate-500">{v.organization}</p></div>} />
                                     </div>
                                 )}
@@ -157,7 +157,7 @@ export default function ResumePreview({ template, data }) {
                 {/* Header */}
                 <div className="flex justify-between items-start border-b-2 border-black pb-4 mb-6">
                     <div className="max-w-[65%]">
-                        <h1 className="text-4xl font-bold uppercase leading-none">{data.personalInfo?.fullName}</h1>
+                        <h1 className="text-4xl font-bold leading-none">{data.personalInfo?.fullName}</h1>
                         <p className="text-lg mt-2 font-bold italic">{data.education?.[0]?.degree || "Candidate"}</p>
                         <p className="text-base">{data.education?.[0]?.school}</p>
                     </div>
@@ -233,9 +233,9 @@ export default function ResumePreview({ template, data }) {
                         <section>
                             <SectionHeader title="Skills" />
                             <div className="text-[11px] leading-relaxed">
-                                <p><span className="font-bold uppercase tracking-tighter text-[10px] mr-1">Technical:</span> {data.skills?.map(s => s.name).join(", ")}</p>
-                                {data.software?.length > 0 && <p className="mt-1"><span className="font-bold uppercase tracking-tighter text-[10px] mr-1">Software:</span> {data.software.map(s => s.name).join(", ")}</p>}
-                                {data.languages?.length > 0 && <p className="mt-1"><span className="font-bold uppercase tracking-tighter text-[10px] mr-1">Languages:</span> {data.languages.map(l => l.name).join(", ")}</p>}
+                                <p><span className="font-bold tracking-tighter text-[10px] mr-1">Technical:</span> {data.skills?.map(s => s.name).join(", ")}</p>
+                                {data.software?.length > 0 && <p className="mt-1"><span className="font-bold tracking-tighter text-[10px] mr-1">Software:</span> {data.software.map(s => s.name).join(", ")}</p>}
+                                {data.languages?.length > 0 && <p className="mt-1"><span className="font-bold tracking-tighter text-[10px] mr-1">Languages:</span> {data.languages.map(l => l.name).join(", ")}</p>}
                             </div>
                         </section>
 
@@ -272,12 +272,12 @@ export default function ResumePreview({ template, data }) {
                 {/* Header */}
                 <div className="text-center mb-10 border-b-4 border-emerald-600 pb-6">
                     <h1 className="text-4xl font-black uppercase text-slate-800 tracking-tighter">{data.personalInfo?.fullName}</h1>
-                    <div className="flex justify-center gap-4 text-xs font-bold text-slate-500 uppercase mt-4">
+                    <div className="flex justify-center gap-4 text-xs font-bold text-slate-500 mt-4">
                         {data.personalInfo?.city && <span>{data.personalInfo.city}</span>}
                         {data.personalInfo?.phone && <span>• {data.personalInfo.phone}</span>}
                         {data.personalInfo?.email && <span>• {data.personalInfo.email}</span>}
                     </div>
-                    <div className="flex justify-center gap-4 text-xs text-emerald-700 font-black uppercase mt-2">
+                    <div className="flex justify-center gap-4 text-xs text-emerald-700 font-black mt-2">
                         {data.personalInfo?.linkedin && <span className="hover:underline flex items-center gap-1"><FaLinkedin /> LinkedIn</span>}
                         {data.personalInfo?.github && <span className="hover:underline flex items-center gap-1"><FaGithub /> GitHub</span>}
                     </div>
@@ -287,7 +287,7 @@ export default function ResumePreview({ template, data }) {
                     {/* Summary */}
                     {data.summary && (
                         <div>
-                            <h3 className="text-base font-black border-l-4 border-emerald-600 pl-2 mb-2 uppercase text-slate-700">Professional Summary</h3>
+                            <h3 className="text-base font-black border-l-4 border-emerald-600 pl-2 mb-2 text-slate-700">Professional Summary</h3>
                             <p className="text-sm leading-relaxed text-slate-600">{data.summary}</p>
                         </div>
                     )}
@@ -295,7 +295,7 @@ export default function ResumePreview({ template, data }) {
                     {/* Experience */}
                     {data.experience?.length > 0 && (
                         <div>
-                            <h3 className="text-base font-black border-l-4 border-emerald-600 pl-2 mb-3 uppercase text-slate-700">Professional Experience</h3>
+                            <h3 className="text-base font-black border-l-4 border-emerald-600 pl-2 mb-3 text-slate-700">Professional Experience</h3>
                             <div className="space-y-4">
                                 {data.experience.map((exp, i) => (
                                     <div key={i}>
@@ -313,7 +313,7 @@ export default function ResumePreview({ template, data }) {
                     {/* Projects & Education */}
                     <div className="grid grid-cols-2 gap-8">
                         <div>
-                            <h3 className="text-sm font-black border-l-4 border-emerald-600 pl-2 mb-3 uppercase text-slate-700">Education</h3>
+                            <h3 className="text-sm font-black border-l-4 border-emerald-600 pl-2 mb-3 text-slate-700">Education</h3>
                             {data.education?.map((edu, i) => (
                                 <div key={i} className="mb-3">
                                     <div className="font-bold text-xs">{edu.school}</div>
@@ -323,7 +323,7 @@ export default function ResumePreview({ template, data }) {
                             ))}
                         </div>
                         <div>
-                            <h3 className="text-sm font-black border-l-4 border-emerald-600 pl-2 mb-3 uppercase text-slate-700">Skills</h3>
+                            <h3 className="text-sm font-black border-l-4 border-emerald-600 pl-2 mb-3 text-slate-700">Skills</h3>
                             <div className="flex flex-wrap gap-1">
                                 {data.skills?.map((s, i) => (
                                     <span key={i} className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full text-slate-700 border border-slate-200 font-bold">{s.name}</span>
@@ -342,7 +342,7 @@ export default function ResumePreview({ template, data }) {
                                 <div className="space-y-4">
                                     {data.projects?.length > 0 && (
                                         <div className="text-[11px]">
-                                            <h4 className="font-black uppercase mb-2 text-emerald-700 text-[10px]">Projects</h4>
+                                            <h4 className="font-black mb-2 text-emerald-700 text-[10px]">Projects</h4>
                                             <ul className="space-y-1">
                                                 {data.projects.slice(0, 2).map((p, i) => <li key={i}><span className="font-bold">{p.title}:</span> {p.description.substring(0, 80)}...</li>)}
                                             </ul>
@@ -350,7 +350,7 @@ export default function ResumePreview({ template, data }) {
                                     )}
                                     {data.certifications?.length > 0 && (
                                         <div className="text-[11px]">
-                                            <h4 className="font-black uppercase mb-2 text-emerald-700 text-[10px]">Certifications</h4>
+                                            <h4 className="font-black mb-2 text-emerald-700 text-[10px]">Certifications</h4>
                                             <ul className="space-y-1">
                                                 {data.certifications.map((c, i) => <li key={i}><span className="font-bold">{c.name}</span> — {c.issuer}</li>)}
                                             </ul>
@@ -360,7 +360,7 @@ export default function ResumePreview({ template, data }) {
                                 <div className="space-y-4">
                                     {data.achievements?.length > 0 && (
                                         <div className="text-[11px]">
-                                            <h4 className="font-black uppercase mb-2 text-emerald-700 text-[10px]">Achievements</h4>
+                                            <h4 className="font-black mb-2 text-emerald-700 text-[10px]">Achievements</h4>
                                             <ul className="list-disc ml-4 space-y-1">
                                                 {data.achievements.map((a, i) => <li key={i}>{a.title}</li>)}
                                             </ul>
@@ -368,7 +368,7 @@ export default function ResumePreview({ template, data }) {
                                     )}
                                     {data.volunteerWork?.length > 0 && (
                                         <div className="text-[11px]">
-                                            <h4 className="font-black uppercase mb-2 text-emerald-700 text-[10px]">Volunteer Work</h4>
+                                            <h4 className="font-black mb-2 text-emerald-700 text-[10px]">Volunteer Work</h4>
                                             <ul className="space-y-1">
                                                 {data.volunteerWork.map((v, i) => <li key={i}><span className="font-bold">{v.role}</span>, {v.organization}</li>)}
                                             </ul>
@@ -393,7 +393,7 @@ export default function ResumePreview({ template, data }) {
                         <h1 className="text-3xl font-black tracking-tighter">&gt; {data.personalInfo?.fullName || "DEV_USER"}</h1>
                         <p className="text-indigo-400 text-sm mt-1">$ {data.experience?.[0]?.title || "Full Stack Developer"}</p>
                     </div>
-                    <div className="text-right text-xs text-slate-400 font-bold leading-tight uppercase">
+                    <div className="text-right text-xs text-slate-400 font-bold leading-tight">
                         <p># {data.personalInfo?.phone}</p>
                         <p>@ {data.personalInfo?.email}</p>
                         <p>L {data.personalInfo?.linkedin}</p>
@@ -405,7 +405,7 @@ export default function ResumePreview({ template, data }) {
                     {/* Left Column (Main) */}
                     <div className="col-span-8 space-y-6">
                         <section>
-                            <h3 className="bg-indigo-600 text-white px-3 py-1 font-bold mb-3 uppercase w-fit inline-block text-sm">Experience</h3>
+                            <h3 className="bg-indigo-600 text-white px-3 py-1 font-bold mb-3 w-fit inline-block text-sm">Experience</h3>
                             <div className="space-y-4">
                                 {data.experience?.map((exp, i) => (
                                     <div key={i} className="border-l-2 border-slate-100 pl-4">
@@ -421,7 +421,7 @@ export default function ResumePreview({ template, data }) {
                         </section>
 
                         <section>
-                            <h3 className="bg-indigo-600 text-white px-2 py-0.5 font-bold mb-3 uppercase w-fit inline-block">Projects</h3>
+                            <h3 className="bg-indigo-600 text-white px-2 py-0.5 font-bold mb-3 w-fit inline-block">Projects</h3>
                             <div className="space-y-4">
                                 {data.projects?.map((proj, i) => (
                                     <div key={i} className="border-l-2 border-indigo-100 pl-4">
@@ -439,7 +439,7 @@ export default function ResumePreview({ template, data }) {
                     {/* Right Column (Side) */}
                     <div className="col-span-4 space-y-6">
                         <section>
-                            <h3 className="bg-slate-800 text-white px-2 py-0.5 font-bold mb-2 uppercase text-[10px]">Stack</h3>
+                            <h3 className="bg-slate-800 text-white px-2 py-0.5 font-bold mb-2 text-[10px]">Stack</h3>
                             <div className="flex flex-wrap gap-1">
                                 {data.skills?.map((s, i) => <span key={i} className="bg-slate-100 px-1.5 py-0.5 rounded text-[9px] border border-slate-200">{s.name}</span>)}
                             </div>
@@ -499,7 +499,7 @@ export default function ResumePreview({ template, data }) {
         return (
             <div className="w-full h-full bg-white p-12 font-serif text-slate-900 border-t-8 border-slate-800 min-h-[1050px] border border-slate-100">
                 <div className="text-center mb-10 pb-6 border-b border-slate-200">
-                    <h1 className="text-4xl font-bold tracking-[0.2em] uppercase leading-tight">{data.personalInfo?.fullName}</h1>
+                    <h1 className="text-4xl font-bold tracking-[0.2em] leading-tight">{data.personalInfo?.fullName}</h1>
                     <div className="mt-4 text-xs flex justify-center gap-6 text-slate-500 uppercase font-bold tracking-widest">
                         <span>{data.personalInfo?.phone}</span>
                         <span>{data.personalInfo?.email}</span>
@@ -514,7 +514,7 @@ export default function ResumePreview({ template, data }) {
                 <div className="space-y-8">
                     {/* Education - Usually First in Research */}
                     <section>
-                        <h3 className="font-bold border-b-2 border-slate-800 mb-3 uppercase text-[12px] tracking-widest italic pb-1">Academic Background</h3>
+                        <h3 className="font-bold border-b-2 border-slate-800 mb-3 text-[12px] tracking-widest italic pb-1">Academic Background</h3>
                         <div className="space-y-3">
                             {data.education?.map((edu, i) => (
                                 <div key={i} className="flex justify-between text-xs">
@@ -573,7 +573,7 @@ export default function ResumePreview({ template, data }) {
                     {/* Skills Grid for Researcher */}
                     <div className="grid grid-cols-2 gap-10">
                         <section>
-                            <h3 className="font-bold border-b-2 border-slate-800 mb-2 uppercase text-[10px] tracking-widest">Skills</h3>
+                            <h3 className="font-bold border-b-2 border-slate-800 mb-2 text-[10px] tracking-widest">Skills</h3>
                             <div className="text-[10px] space-y-1">
                                 <p><span className="font-bold">Methods:</span> {data.skills?.map(s => s.name).join(", ")}</p>
                                 <p><span className="font-bold">Tools:</span> {data.software?.map(s => s.name).join(", ")}</p>
@@ -582,7 +582,7 @@ export default function ResumePreview({ template, data }) {
                         </section>
                         {(data.achievements?.length > 0 || data.certifications?.length > 0) && (
                             <section>
-                                <h3 className="font-bold border-b-2 border-slate-800 mb-2 uppercase text-[10px] tracking-widest">Grants & Honors</h3>
+                                <h3 className="font-bold border-b-2 border-slate-800 mb-2 text-[10px] tracking-widest">Grants & Honors</h3>
                                 <ul className="text-[10px] space-y-1">
                                     {data.achievements.map((a, i) => <li key={i} className="leading-tight">• {a.title}</li>)}
                                     {data.certifications.map((c, i) => <li key={i} className="leading-tight font-bold">• CERT: {c.name}</li>)}
@@ -592,7 +592,7 @@ export default function ResumePreview({ template, data }) {
                     </div>
                     {data.volunteerWork?.length > 0 && (
                         <section>
-                            <h3 className="font-bold border-b-2 border-slate-800 mb-3 uppercase text-[10px] tracking-widest italic">Volunteer & Activities</h3>
+                            <h3 className="font-bold border-b-2 border-slate-800 mb-3 text-[10px] tracking-widest italic">Volunteer & Activities</h3>
                             {data.volunteerWork.map((v, i) => (
                                 <div key={i} className="text-[11px] mb-2 leading-relaxed">
                                     <span className="font-bold">{v.role}</span>, {v.organization} — {v.description}
@@ -612,10 +612,10 @@ export default function ResumePreview({ template, data }) {
                 {/* Header */}
                 <div className="border-b-[3px] border-slate-900 pb-2 mb-6 flex justify-between items-end">
                     <div>
-                        <h1 className="text-4xl font-black uppercase tracking-tighter leading-none">{data.personalInfo?.fullName}</h1>
-                        <p className="text-base font-bold text-slate-500 mt-1 uppercase tracking-widest">{data.experience?.[0]?.title || "Professional"}</p>
+                        <h1 className="text-4xl font-black tracking-tighter leading-none">{data.personalInfo?.fullName}</h1>
+                        <p className="text-base font-bold text-slate-500 mt-1 tracking-widest">{data.experience?.[0]?.title || "Professional"}</p>
                     </div>
-                    <div className="text-right text-xs font-bold uppercase tracking-tight text-slate-600 space-y-0.5">
+                    <div className="text-right text-xs font-bold tracking-tight text-slate-600 space-y-0.5">
                         <p>{data.personalInfo?.phone} | {data.personalInfo?.email}</p>
                         <p className="text-slate-400">{data.personalInfo?.linkedin} | {data.personalInfo?.github}</p>
                     </div>
@@ -624,7 +624,7 @@ export default function ResumePreview({ template, data }) {
                 <div className="space-y-6 flex-1">
                     {/* Education */}
                     <section>
-                        <h3 className="font-black uppercase tracking-[0.2em] mb-3 text-[10px] py-0.5 px-2 bg-slate-900 text-white w-fit">Education</h3>
+                        <h3 className="font-black tracking-[0.2em] mb-3 text-[10px] py-0.5 px-2 bg-slate-900 text-white w-fit">Education</h3>
                         <div className="space-y-2">
                             {data.education?.map((edu, i) => (
                                 <div key={i} className="flex justify-between items-baseline text-xs">
@@ -637,12 +637,12 @@ export default function ResumePreview({ template, data }) {
 
                     {/* Industrial Exp */}
                     <section>
-                        <h3 className="font-black uppercase tracking-[0.2em] mb-3 text-[10px] py-0.5 px-2 bg-slate-900 text-white w-fit">Experience</h3>
+                        <h3 className="font-black tracking-[0.2em] mb-3 text-[10px] py-0.5 px-2 bg-slate-900 text-white w-fit">Experience</h3>
                         <div className="space-y-4">
                             {data.experience?.map((exp, i) => (
                                 <div key={i}>
                                     <div className="flex justify-between items-baseline text-xs">
-                                        <h4 className="font-black uppercase text-slate-700">{exp.company}</h4>
+                                        <h4 className="font-black text-slate-700">{exp.company}</h4>
                                         <span className="font-mono text-[10px] text-slate-400">{exp.startDate} - {exp.endDate}</span>
                                     </div>
                                     <div className="text-[11px] font-bold italic text-slate-500 mb-1">{exp.title}</div>
@@ -654,10 +654,10 @@ export default function ResumePreview({ template, data }) {
 
                     {/* Technical Assets */}
                     <section>
-                        <h3 className="font-black uppercase tracking-[0.2em] mb-3 text-[10px] py-0.5 px-2 bg-slate-900 text-white w-fit">Skills</h3>
+                        <h3 className="font-black tracking-[0.2em] mb-3 text-[10px] py-0.5 px-2 bg-slate-900 text-white w-fit">Skills</h3>
                         <div className="grid grid-cols-3 gap-4 text-xs">
                             <div className="border border-slate-100 p-2 rounded">
-                                <span className="font-black text-[9px] uppercase text-slate-400 block mb-1">Expertise</span>
+                                <span className="font-black text-[9px] text-slate-400 block mb-1">Expertise</span>
                                 <div className="flex flex-wrap gap-1">
                                     {data.skills?.map((s, i) => <span key={i} className="bg-slate-50 px-1 py-0.5 rounded text-[10px]">{s.name}</span>)}
                                 </div>
@@ -679,11 +679,11 @@ export default function ResumePreview({ template, data }) {
 
                     {/* Projects */}
                     <section>
-                        <h3 className="font-black uppercase tracking-[0.2em] mb-3 text-[10px] py-0.5 px-2 bg-slate-900 text-white w-fit">Projects</h3>
+                        <h3 className="font-black tracking-[0.2em] mb-3 text-[10px] py-0.5 px-2 bg-slate-900 text-white w-fit">Projects</h3>
                         <div className="grid grid-cols-2 gap-4">
                             {data.projects?.map((proj, i) => (
                                 <div key={i} className="p-3 bg-slate-50 rounded-lg">
-                                    <div className="font-black text-[11px] uppercase text-slate-700 leading-tight">
+                                    <div className="font-black text-[11px] text-slate-700 leading-tight">
                                         {proj.title}
                                     </div>
                                     <div className="text-[9px] text-slate-400 font-bold mb-1">{proj.technologies}</div>
@@ -699,7 +699,7 @@ export default function ResumePreview({ template, data }) {
                             <div className="space-y-4">
                                 {data.achievements?.length > 0 && (
                                     <div>
-                                        <h4 className="font-black text-[9px] uppercase text-slate-400 mb-1">Achievements</h4>
+                                        <h4 className="font-black text-[9px] text-slate-400 mb-1">Achievements</h4>
                                         <ul className="text-[10px] space-y-0.5">
                                             {data.achievements.slice(0, 3).map((a, i) => <li key={i}>• {a.title}</li>)}
                                         </ul>
@@ -707,7 +707,7 @@ export default function ResumePreview({ template, data }) {
                                 )}
                                 {data.certifications?.length > 0 && (
                                     <div>
-                                        <h4 className="font-black text-[9px] uppercase text-slate-400 mb-1">Certifications</h4>
+                                        <h4 className="font-black text-[9px] text-slate-400 mb-1">Certifications</h4>
                                         <ul className="text-[10px] space-y-0.5">
                                             {data.certifications.slice(0, 3).map((c, i) => <li key={i}>• {c.name}</li>)}
                                         </ul>
@@ -717,7 +717,7 @@ export default function ResumePreview({ template, data }) {
                             <div className="space-y-4">
                                 {data.extracurriculars?.length > 0 && (
                                     <div>
-                                        <h4 className="font-black text-[9px] uppercase text-slate-400 mb-1">Activities</h4>
+                                        <h4 className="font-black text-[9px] text-slate-400 mb-1">Activities</h4>
                                         <ul className="text-[10px] space-y-0.5">
                                             {data.extracurriculars.slice(0, 3).map((e, i) => <li key={i}>• {e.title}</li>)}
                                         </ul>
@@ -725,7 +725,7 @@ export default function ResumePreview({ template, data }) {
                                 )}
                                 {data.volunteerWork?.length > 0 && (
                                     <div>
-                                        <h4 className="font-black text-[9px] uppercase text-slate-400 mb-1">Volunteer</h4>
+                                        <h4 className="font-black text-[9px] text-slate-400 mb-1">Volunteer</h4>
                                         <ul className="text-[10px] space-y-0.5">
                                             {data.volunteerWork.slice(0, 3).map((v, i) => <li key={i}>• {v.role}</li>)}
                                         </ul>

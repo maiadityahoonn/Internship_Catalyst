@@ -21,6 +21,26 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 100, damping: 20 },
+  },
+};
+
 export default function Jobs() {
   // State management
   const [jobs, setJobs] = useState([]);
@@ -132,28 +152,44 @@ export default function Jobs() {
       <div className="max-w-7xl mx-auto">
 
         {/* 1. HERO SECTION (Header) */}
-        <div className="relative mb-16 text-center">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: false, amount: 0.1 }}
+          className="relative mb-16 text-center"
+        >
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-sky-500/20 blur-[100px] rounded-full pointer-events-none -z-10"></div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold uppercase tracking-widest mb-6 backdrop-blur-md shadow-[0_0_20px_rgba(14,165,233,0.1)]">
+
+          <motion.div variants={fadeInUp}>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold tracking-widest mb-6 backdrop-blur-md shadow-[0_0_20px_rgba(14,165,233,0.1)]">
               <Briefcase className="w-4 h-4" /> Top-Tier Careers
             </div>
           </motion.div>
-          <h1 className="text-[2.25rem] sm:text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight">
+
+          <motion.h1
+            variants={fadeInUp}
+            className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 tracking-tighter leading-tight"
+          >
             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Find Your </span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400">Next Big Thing</span>
-          </h1>
-          <p className="text-slate-400 text-base md:text-lg lg:text-xl max-w-2xl mx-auto font-light px-4">
+          </motion.h1>
+
+          <motion.p
+            variants={fadeInUp}
+            className="text-sm md:text-lg text-slate-400 max-w-2xl mx-auto px-4 leading-relaxed font-medium"
+          >
             Curated opportunities with top-tier companies. Verified and ready for you.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
         {/* 2. FILTER BAR */}
-        <div className="sticky top-20 md:top-24 z-40 mb-12 px-2">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false }}
+          className="sticky top-20 md:top-24 z-40 mb-12 px-2"
+        >
           <div className="bg-[#0f172a]/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-1.5 md:p-2 shadow-2xl flex flex-col md:flex-row gap-2 max-w-5xl mx-auto">
             <div className="relative flex-1 group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 group-focus-within:text-sky-400 transition-colors" />
@@ -207,7 +243,7 @@ export default function Jobs() {
               >
                 <div className="space-y-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Workplace</label>
+                    <label className="text-[10px] font-black tracking-widest text-slate-500 mb-2 block">Workplace</label>
                     <select
                       value={officeType}
                       onChange={(e) => { setOfficeType(e.target.value); setCurrentPage(1); }}
@@ -220,7 +256,7 @@ export default function Jobs() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Experience</label>
+                    <label className="text-[10px] font-black tracking-widest text-slate-500 mb-2 block">Experience</label>
                     <select
                       value={minExperience}
                       onChange={(e) => { setMinExperience(e.target.value); setCurrentPage(1); }}
@@ -234,13 +270,13 @@ export default function Jobs() {
                   </div>
                   <div className="flex gap-2 pt-2">
                     <button onClick={clearFilters} className="flex-1 p-3 bg-rose-500/10 text-rose-400 rounded-xl font-bold text-sm">Clear Filters</button>
-                    <button onClick={() => setShowMobileFilters(false)} className="flex-1 p-3 bg-sky-500 text-black rounded-xl font-black text-sm uppercase tracking-widest">Apply</button>
+                    <button onClick={() => setShowMobileFilters(false)} className="flex-1 p-3 bg-sky-500 text-black rounded-xl font-black text-sm tracking-widest">Apply</button>
                   </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </motion.div>
 
         {/* 3. UNIQUE CARD GRID */}
         {loading ? (
@@ -259,14 +295,18 @@ export default function Jobs() {
             <button onClick={clearFilters} className="mt-6 text-sky-400 font-bold hover:underline">Reset All</button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+          >
             {currentJobs.map((job) => (
               <motion.div
                 layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
+                variants={fadeInUp}
                 whileHover={{ y: -8, scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
                 key={job.id}
                 className="group relative bg-[#0B1120] border border-white/5 rounded-[1.5rem] md:rounded-[2rem] overflow-hidden hover:border-sky-500/30 transition-colors duration-500"
               >
@@ -293,41 +333,40 @@ export default function Jobs() {
                         }`}>
                         {job.officeType || 'Hybrid'}
                       </span>
-                      {/* Date Removed per user request */}
                     </div>
                   </div>
 
-                  <h3 className="text-xl font-bold text-white mb-1 line-clamp-1 group-hover:text-sky-400 transition-colors">{job.title}</h3>
-                  <div className="flex items-center gap-2 mb-5">
+                  <motion.h3 variants={fadeInUp} className="text-base md:text-xl font-black text-white mb-1 line-clamp-1 group-hover:text-sky-400 transition-colors tracking-tight">{job.title}</motion.h3>
+                  <motion.div variants={fadeInUp} className="flex items-center gap-2 mb-5">
                     <p className="text-slate-400 font-medium text-sm">{job.company}</p>
                     {job.isVerified && (
                       <span className="flex items-center gap-1 bg-sky-500/20 text-sky-400 border border-sky-500/30 px-1.5 py-0.5 rounded text-[10px] font-bold">
                         Verified <BadgeCheck className="w-3 h-3" />
                       </span>
                     )}
-                  </div>
+                  </motion.div>
 
-                  <div className="grid grid-cols-2 gap-2 mb-5">
+                  <motion.div variants={fadeInUp} className="grid grid-cols-2 gap-2 mb-5">
                     <div className="bg-white/5 rounded-lg p-2 border border-white/5">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1"><MapPin className="w-3 h-3" /> Location</p>
+                      <p className="text-[10px] text-slate-500 font-bold tracking-wider mb-0.5 flex items-center gap-1"><MapPin className="w-3 h-3" /> Location</p>
                       <p className="text-xs text-slate-200 font-medium truncate">{job.location || 'Remote'}</p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-2 border border-white/5">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1"><Banknote className="w-3 h-3" /> Salary</p>
+                      <p className="text-[10px] text-slate-500 font-bold tracking-wider mb-0.5 flex items-center gap-1"><Banknote className="w-3 h-3" /> Salary</p>
                       <p className="text-xs text-emerald-400 font-medium truncate">{job.salary || 'Competitive'}</p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-2 border border-white/5">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1"><Clock className="w-3 h-3" /> Deadline</p>
+                      <p className="text-[10px] text-slate-500 font-bold tracking-wider mb-0.5 flex items-center gap-1"><Clock className="w-3 h-3" /> Deadline</p>
                       <p className="text-xs text-rose-400 font-medium truncate">{job.deadline || 'ASAP'}</p>
                     </div>
                     <div className="bg-white/5 rounded-lg p-2 border border-white/5">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1"><Briefcase className="w-3 h-3" /> Openings</p>
+                      <p className="text-[10px] text-slate-500 font-bold tracking-wider mb-0.5 flex items-center gap-1"><Briefcase className="w-3 h-3" /> Openings</p>
                       <p className="text-xs text-white font-medium truncate">{job.openings || 'N/A'}</p>
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* Skills Section */}
-                  <div className="flex flex-wrap gap-1.5 mb-2">
+                  <motion.div variants={fadeInUp} className="flex flex-wrap gap-1.5 mb-2">
                     {job.skills?.slice(0, 3).map((skill, i) => (
                       <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5 font-medium">
                         {skill}
@@ -338,7 +377,7 @@ export default function Jobs() {
                         +{job.skills.length - 3} More
                       </span>
                     )}
-                  </div>
+                  </motion.div>
                 </div>
 
                 {/* Bottom Action Bar (Slide Up Effect) */}
@@ -358,7 +397,7 @@ export default function Jobs() {
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {/* Pagination */}
@@ -433,38 +472,38 @@ export default function Jobs() {
                     )}
                   </div>
                   <div>
-                    <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">{selectedJobForDetails.title}</h2>
-                    <p className="text-lg sm:text-xl text-slate-400 font-medium">{selectedJobForDetails.company}</p>
+                    <h2 className="text-xl md:text-2xl font-black text-white mb-2 tracking-tight">{selectedJobForDetails.title}</h2>
+                    <p className="text-sm md:text-lg text-slate-400 font-medium tracking-widest">{selectedJobForDetails.company}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <p className="text-xs text-slate-500 font-bold uppercase mb-1 flex items-center gap-1"><Banknote className="w-3 h-3" /> Salary</p>
+                    <p className="text-xs text-slate-500 font-bold mb-1 flex items-center gap-1"><Banknote className="w-3 h-3" /> Salary</p>
                     <p className="text-emerald-400 font-bold">{selectedJobForDetails.salary}</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <p className="text-xs text-slate-500 font-bold uppercase mb-1 flex items-center gap-1"><Briefcase className="w-3 h-3" /> Experience</p>
+                    <p className="text-xs text-slate-500 font-bold mb-1 flex items-center gap-1"><Briefcase className="w-3 h-3" /> Experience</p>
                     <p className="text-white font-bold">{selectedJobForDetails.experience}</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <p className="text-xs text-slate-500 font-bold uppercase mb-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> Location</p>
+                    <p className="text-xs text-slate-500 font-bold mb-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> Location</p>
                     <p className="text-white font-bold truncate">{selectedJobForDetails.location}</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <p className="text-xs text-slate-500 font-bold uppercase mb-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Deadline</p>
+                    <p className="text-xs text-slate-500 font-bold mb-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Deadline</p>
                     <p className="text-rose-400 font-bold">{selectedJobForDetails.deadline || 'N/A'}</p>
                   </div>
                 </div>
 
-                <h3 className="text-xl font-bold text-white mb-4">About the Role</h3>
+                <h3 className="text-xl md:text-2xl font-black text-white mb-4 tracking-tight">About the Role</h3>
                 <div className="prose prose-invert max-w-none mb-8 text-slate-300">
-                  <p className="whitespace-pre-wrap leading-relaxed">{selectedJobForDetails.description}</p>
+                  <p className="text-sm md:text-lg text-slate-400 leading-relaxed whitespace-pre-wrap font-medium">{selectedJobForDetails.description}</p>
                 </div>
 
                 {selectedJobForDetails.skills && (
                   <div className="mb-8">
-                    <h3 className="text-xl font-bold text-white mb-4">Skills</h3>
+                    <h3 className="text-xl md:text-2xl font-black text-white mb-4 tracking-tight">Skills</h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedJobForDetails.skills.map((s, i) => (
                         <span key={i} className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 font-medium">{s}</span>
