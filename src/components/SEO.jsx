@@ -6,8 +6,8 @@ const SEO = ({ title, description, keywords, canonical, image }) => {
     const baseUrl = "https://internshipcatalyst.com";
     const currentUrl = `${baseUrl}${location.pathname}`;
     const defaultDescription = "Internship Catalyst offers verified jobs, internships, professional skill courses, and AI-powered career tools to help students grow and get hired faster today.";
-    const defaultKeywords = "internship, jobs, career, students, AI resume builder, ATS checker, internship catalyst, placements, skill development";
-    const defaultImage = `${baseUrl}/logo-og.png`;
+    const defaultKeywords = "Internship Catalyst, internships in india, student internships, freshers jobs, AI resume builder, ATS score checker, free online courses with certificates, career growth, skill development, placement preparation";
+    const defaultImage = `${baseUrl}/logo.png`;
 
     useEffect(() => {
         // 1. Update Document Title
@@ -54,27 +54,44 @@ const SEO = ({ title, description, keywords, canonical, image }) => {
         canonicalLink.setAttribute('href', canonical || currentUrl);
 
         // 6. JSON-LD Structured Data
-        const schemaData = {
+        const organizationData = {
             "@context": "https://schema.org",
             "@type": "Organization",
             "name": "Internship Catalyst",
             "url": baseUrl,
-            "logo": `${baseUrl}/src/assets/webpage.jpeg`,
+            "logo": `${baseUrl}/logo.png`,
+            "description": defaultDescription,
             "sameAs": [
-                "https://www.linkedin.com/company/internship-catalyst",
-                "https://twitter.com/interncatalyst"
-            ],
-            "description": defaultDescription
+                "https://www.linkedin.com/company/internshipcatalyst",
+                "https://www.instagram.com/internshipcatalyst",
+                "https://twitter.com/internshipcatalyst"
+            ]
         };
 
-        let scriptTag = document.getElementById('json-ld-schema');
-        if (!scriptTag) {
-            scriptTag = document.createElement('script');
-            scriptTag.id = 'json-ld-schema';
-            scriptTag.type = 'application/ld+json';
-            document.head.appendChild(scriptTag);
+        let orgScript = document.getElementById('json-ld-organization');
+        if (!orgScript) {
+            orgScript = document.createElement('script');
+            orgScript.id = 'json-ld-organization';
+            orgScript.type = 'application/ld+json';
+            document.head.appendChild(orgScript);
         }
-        scriptTag.text = JSON.stringify(schemaData);
+        orgScript.text = JSON.stringify(organizationData);
+
+        const websiteData = {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Internship Catalyst",
+            "url": baseUrl
+        };
+
+        let siteScript = document.getElementById('json-ld-website');
+        if (!siteScript) {
+            siteScript = document.createElement('script');
+            siteScript.id = 'json-ld-website';
+            siteScript.type = 'application/ld+json';
+            document.head.appendChild(siteScript);
+        }
+        siteScript.text = JSON.stringify(websiteData);
 
     }, [title, description, keywords, canonical, image, currentUrl]);
 
